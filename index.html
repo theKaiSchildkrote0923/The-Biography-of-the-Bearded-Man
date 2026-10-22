@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>風塵三俠傳：虯髯客 2D Pixel RPG</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Pixel & Noto Serif -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Serif+TC:wght@600;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            background-color: #080808;
+            font-family: 'Noto Serif TC', serif;
+            color: #f4ebd0;
+            overflow: hidden;
+        }
+
+        /* 經典 Canvas 像素渲染模態 */
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+            border: 3px solid #8b0000;
+        }
+
+        .pixel-font {
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .pixel-box {
+            background: rgba(18, 14, 10, 0.92);
+            border: 4px solid #d4af37;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8), 0 4px 20px rgba(0,0,0,0.9);
+        }
+
+        .btn-pixel {
+            background: linear-gradient(180deg, #8b0000 0%, #5c0000 100%);
+            border: 2px solid #d4af37;
+            color: #f4ebd0;
+            text-shadow: 1px 1px 0 #000;
+            transition: all 0.1s ease;
+        }
+        .btn-pixel:hover {
+            background: linear-gradient(180deg, #a30000 0%, #730000 100%);
+            border-color: #fff;
+            transform: translateY(-2px);
+        }
+        .btn-pixel:active {
+            transform: translateY(1px);
+        }
+
+        /* 自訂動態閃爍指標 */
+        .cursor-blink::after {
+            content: '▼';
+            animation: blink 0.7s infinite;
+            margin-left: 6px;
+            color: #d4af37;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex flex-col justify-between items-center p-2 sm:p-4 select-none">
+
+    <!-- 頂部資訊列 -->
+    <header class="w-full max-w-4xl flex justify-between items-center px-4 py-2 bg-black/90 border-b-2 border-amber-600/80 rounded-t-lg z-10">
+        <div class="flex items-center space-x-3">
+            <span class="text-xl sm:text-2xl font-black text-amber-400 tracking-wider">風塵三俠傳</span>
+            <span id="chapter-title" class="text-xs sm:text-sm bg-red-950 text-amber-200 border border-amber-600/50 px-2 py-0.5 rounded">
+                第一章：紅拂夜奔
+            </span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button id="audio-toggle" onclick="toggleAudio()" class="text-amber-400 hover:text-white transition">
+                <i id="audio-icon" class="fa-solid fa-volume-high text-lg"></i>
+            </button>
+            <div id="quest-tag" class="text-xs text-amber-300/80 hidden sm:block">
+                <i class="fa-solid fa-compass mr-1"></i>當前目標: 移動至長安城門
+            </div>
+        </div>
+    </header>
+
+    <!-- 遊戲主舞台 (Canvas 視窗 + UI Overlay) -->
+    <main class="relative w-full max-w-4xl flex-1 flex flex-col justify-center items-center my-1">
+        <!-- 像素畫布 -->
+        <canvas id="gameCanvas" width="640" height="360" class="w-full max-w-4xl h-auto rounded-lg"></canvas>
+
+        <!-- 對話視窗 UI Overlay -->
+        <div id="dialog-box" class="absolute bottom-2 left-2 right-2 pixel-box p-3 sm:p-4 rounded-lg hidden z-20 flex flex-col sm:flex-row gap-3">
+            <!-- 像素頭像展示區 -->
+            <div id="dialog-avatar-container" class="w-16 h-16 sm:w-20 sm:h-20 bg-amber-950/60 border-2 border-amber-500/80 rounded flex-shrink-0 flex items-center justify-center p-1">
+                <canvas id="avatarCanvas" width="32" height="32" class="w-full h-full border-0 shadow-none"></canvas>
+            </div>
+            <!-- 對話內文 -->
+            <div class="flex-1 flex flex-col justify-between">
+                <div>
+                    <div id="dialog-speaker" class="text-amber-400 font-bold text-sm sm:text-base mb-1">【李靖】</div>
+                    <div id="dialog-text" class="text-xs sm:text-sm leading-relaxed text-amber-100 min-h-[40px] cursor-blink">
+                        文字載入中...
+                    </div>
+                </div>
+                <div class="text-right text-[10px] text-amber-400/60 mt-1">
+                    按 [空白鍵 / 點擊] 繼續...
+                </div>
+            </div>
+        </div>
+
+        <!-- 戰鬥選單 Overlay -->
+        <div id="battle-menu" class="absolute bottom-2 left-2 right-2 pixel-box p-3 rounded-lg hidden z-20 flex flex-col gap-2">
+            <div class="flex justify-between items-center border-b border-amber-800/50 pb-1 mb-1">
+                <span class="text-xs text-amber-300 font-bold" id="battle-turn-hint">⚔️ 請選擇行動</span>
+                <span class="text-[10px] text-amber-400/80" id="battle-enemy-status">官兵追兵隊長 HP: 100/100</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button onclick="handleBattleChoice('attack')" class="btn-pixel py-2 px-3 text-xs font-bold rounded">🗡️ 攻擊</button>
+                <button onclick="handleBattleChoice('skill')" class="btn-pixel py-2 px-3 text-xs font-bold rounded">📜 俠客技能</button>
+                <button onclick="handleBattleChoice('defend')" class="btn-pixel py-2 px-3 text-xs font-bold rounded">🛡️ 防禦架擋</button>
+                <button onclick="handleBattleChoice('item')" class="btn-pixel py-2 px-3 text-xs font-bold rounded">🍾 飲酒/錦囊</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 底部控制面板 (手機觸控虛擬控制器) -->
+    <footer class="w-full max-w-4xl bg-black/80 border-t border-amber-900/60 p-2 rounded-b-lg flex justify-between items-center gap-2 z-10">
+        <!-- 十字方向鍵 D-Pad -->
+        <div class="grid grid-cols-3 gap-1 w-32 h-24 sm:hidden">
+            <div></div>
+            <button ontouchstart="setVirtualKey('ArrowUp', true)" ontouchend="setVirtualKey('ArrowUp', false)" class="bg-gray-800 text-amber-300 rounded border border-gray-600 flex items-center justify-center text-lg active:bg-amber-800">▲</button>
+            <div></div>
+            <button ontouchstart="setVirtualKey('ArrowLeft', true)" ontouchend="setVirtualKey('ArrowLeft', false)" class="bg-gray-800 text-amber-300 rounded border border-gray-600 flex items-center justify-center text-lg active:bg-amber-800">◀</button>
+            <button ontouchstart="setVirtualKey('Space', true)" ontouchend="setVirtualKey('Space', false)" class="bg-amber-900 text-amber-200 rounded border border-amber-500 flex items-center justify-center text-xs font-bold active:bg-amber-700">OK</button>
+            <button ontouchstart="setVirtualKey('ArrowRight', true)" ontouchend="setVirtualKey('ArrowRight', false)" class="bg-gray-800 text-amber-300 rounded border border-gray-600 flex items-center justify-center text-lg active:bg-amber-800">▶</button>
+            <div></div>
+            <button ontouchstart="setVirtualKey('ArrowDown', true)" ontouchend="setVirtualKey('ArrowDown', false)" class="bg-gray-800 text-amber-300 rounded border border-gray-600 flex items-center justify-center text-lg active:bg-amber-800">▼</button>
+            <div></div>
+        </div>
+
+        <!-- 鍵盤提示與說明 -->
+        <div class="text-[11px] text-amber-200/60 hidden sm:flex items-center gap-4">
+            <span><kbd class="px-1.5 py-0.5 bg-gray-800 border border-gray-600 rounded text-amber-300">WASD</kbd> / <kbd class="px-1.5 py-0.5 bg-gray-800 border border-gray-600 rounded text-amber-300">方向鍵</kbd> 移動</span>
+            <span><kbd class="px-1.5 py-0.5 bg-gray-800 border border-gray-600 rounded text-amber-300">SPACE</kbd> / <kbd class="px-1.5 py-0.5 bg-gray-800 border border-gray-600 rounded text-amber-300">ENTER</kbd> 對話/互動</span>
+        </div>
+
+        <!-- 隊伍狀態總覽 -->
+        <div class="flex items-center space-x-3 text-xs bg-black/60 px-3 py-1.5 rounded border border-amber-900/40 ml-auto">
+            <div class="flex items-center space-x-1">
+                <span class="text-amber-400 font-bold">李靖 HP:</span>
+                <span id="party-hp" class="text-emerald-400 font-mono">100/100</span>
+            </div>
+            <div class="flex items-center space-x-1">
+                <span class="text-amber-400 font-bold">豪氣:</span>
+                <span id="party-sp" class="text-blue-400 font-mono">50</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 核心遊戲 JavaScript -->
+    <script>
+        /* -------------------------------------------------------------------------- */
+        /* 1. 音效系統 (Web Audio API - 8-Bit Chiptune)                               */
+        /* -------------------------------------------------------------------------- */
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'step') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(110, now);
+                osc.frequency.exponentialRampToValueAtTime(50, now + 0.05);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            } else if (type === 'select') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(330, now);
+                osc.frequency.setValueAtTime(660, now + 0.08);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } else if (type === 'hit') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(40, now + 0.2);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            } else if (type === 'win') {
+                [261, 329, 392, 523].forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+                    gain.gain.setValueAtTime(0.15, now + idx * 0.1);
+                    gain.gain.linearRampToValueAtTime(0.01, now + idx * 0.1 + 0.2);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + idx * 0.1);
+                    osc.stop(now + idx * 0.1 + 0.2);
+                });
+            }
+        }
+
+        function toggleAudio() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('audio-icon');
+            icon.className = soundEnabled ? 'fa-solid fa-volume-high text-lg' : 'fa-solid fa-volume-xmark text-lg text-gray-500';
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 2. 像素畫布與程序化圖案繪製 (Canvas Procedural Pixel Sprites)              */
+        /* -------------------------------------------------------------------------- */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const avatarCanvas = document.getElementById('avatarCanvas');
+        const avatarCtx = avatarCanvas.getContext('2d');
+
+        const TILE_SIZE = 32;
+        const MAP_COLS = 20;
+        const MAP_ROWS = 11;
+
+        // 像素角色圖案 (16x16 Pixel Art Matrices encoded in color strings)
+        // P: 特殊色, R: 紅, G: 金, B: 藍, C: 膚色, W: 白, K: 黑, S: 鋼鐵, O: 棕
+        const PIXEL_SPRITES = {
+            'lijing': [
+                "....KKKKKK......",
+                "...KCCCCCCK.....",
+                "..KCCCKC3CK.....",
+                "..KCCCCCCK......",
+                "...KCCCCKK......",
+                "..BBBBBBBB......",
+                ".BBSBBBSBBB.....",
+                ".BBSBBBSBBB.....",
+                ".BBBBBBBBBB.....",
+                "..OOO..OOO......",
+                "..OOO..OOO......",
+                "..SSS..SSS......"
+            ],
+            'hongfu': [
+                "....RRRRRR......",
+                "...RCCCCCCR.....",
+                "..RCCCKCKCR.....",
+                "..RCCCCCCCR.....",
+                "...RCCCCCR......",
+                "..RRRRRRRR......",
+                ".RRWRRRWRRR.....",
+                ".RRWRRRWRRR.....",
+                ".RRRRRRRRRR.....",
+                "..RRR..RRR......",
+                "..OOO..OOO......",
+                "..SSS..SSS......"
+            ],
+            'qiuran': [
+                "....OOOOOO......",
+                "...OCCCCCC1.....",
+                "..OCCCKCKC1.....",
+                "..O11111111.....",
+                "...1111111......",
+                "..GGGGGGGG......",
+                ".GGOGGGOGGG.....",
+                ".GGOGGGOGGG.....",
+                ".GGGGGGGGGG.....",
+                "..OOO..OOO......",
+                "..OOO..OOO......",
+                "..SSS..SSS......"
+            ],
+            'soldier': [
+                "....SSSSSS......",
+                "...SCCCCCCK.....",
+                "..SCCCKC3CK.....",
+                "..SCCCCCCK......",
+                "...SCCCCKK......",
+                "..RRRRRRRR......",
+                ".RRSRRRSRRR.....",
+                ".RRSRRRSRRR.....",
+                ".RRRRRRRRRR.....",
+                "..SSS..SSS......",
+                "..SSS..SSS......",
+                "..KKK..KKK......"
+            ],
+            'shiming': [
+                "....GGGGGG......",
+                "...GCCCCCCG.....",
+                "..GCCCKCKCG.....",
+                "..GCCCCCCCG.....",
+                "...GCCCCCG......",
+                "..BBBBBBBB......",
+                ".BBGBBBGBBB.....",
+                ".BBGBBBGBBB.....",
+                ".BBBBBBBBBB.....",
+                "..OOO..OOO......",
+                "..OOO..OOO......",
+                "..SSS..SSS......"
+            ]
+        };
+
+        const COLOR_MAP = {
+            '.': 'transparent',
+            'K': '#1a1a1a',
+            'C': '#f3d2b3',
+            '3': '#8b4513',
+            'R': '#a81c1c',
+            'G': '#d4af37',
+            'B': '#1e3d59',
+            'S': '#708090',
+            'W': '#f4ebd0',
+            'O': '#4a2e1b',
+            '1': '#b22222' // 虯髯客赤鬚
+        };
+
+        function drawPixelSprite(targetCtx, spriteMatrix, x, y, pixelScale = 2) {
+            for (let r = 0; r < spriteMatrix.length; r++) {
+                for (let c = 0; c < spriteMatrix[r].length; c++) {
+                    const char = spriteMatrix[r][c];
+                    if (char !== '.' && COLOR_MAP[char]) {
+                        targetCtx.fillStyle = COLOR_MAP[char];
+                        targetCtx.fillRect(x + c * pixelScale, y + r * pixelScale, pixelScale, pixelScale);
+                    }
+                }
+            }
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 3. 地圖 Tile Engine & 章節關卡                                             */
+        /* -------------------------------------------------------------------------- */
+        // 地形 Tile: 0:草地/地板, 1:牆壁/木牆, 2:門/出口, 3:桌椅裝飾, 4:海浪/水
+        const MAP_DATA = {
+            'ch1_changan': {
+                name: '長安·楊素府邸門前',
+                chapter: '第一章：紅拂夜奔',
+                grid: [
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],
+                    [1,0,3,3,0,0,1,0,3,0,3,0,1,0,0,3,3,0,0,1],
+                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                    [1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1],
+                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                    [1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],
+                    [1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],
+                    [1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,1,1]
+                ],
+                playerStart: { x: 2, y: 5 },
+                npcs: [
+                    { x: 5, y: 3, sprite: 'hongfu', name: '紅拂女', dialogTrigger: 'ch1_hongfu_meet' },
+                    { x: 10, y: 8, sprite: 'soldier', name: '隋府侍衛', dialogTrigger: 'ch1_soldier_warn' }
+                ]
+            },
+            'ch2_lingzhou': {
+                name: '靈州·風塵客棧',
+                chapter: '第二章：靈州奇遇',
+                grid: [
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,0,0,0,3,3,0,0,0,0,0,0,3,3,0,0,0,0,0,1],
+                    [1,0,0,0,0,0,0,0,3,3,0,0,0,0,0,0,0,0,0,1],
+                    [1,0,0,0,0,0,0,0,3,3,0,0,0,0,0,0,0,0,0,1],
+                    [1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1],
+                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                    [1,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,1],
+                    [1,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,1],
+                    [1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,1,1]
+                ],
+                playerStart: { x: 3, y: 5 },
+                npcs: [
+                    { x: 12, y: 2, sprite: 'qiuran', name: '虯髯客', dialogTrigger: 'ch2_qiuran_meet' },
+                    { x: 4, y: 2, sprite: 'hongfu', name: '紅拂女', dialogTrigger: 'ch2_hongfu_comb' }
+                ]
+            },
+            'ch3_taiyuan': {
+                name: '太原·文靜館',
+                chapter: '第三章：太原觀龍',
+                grid: [
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1],
+                    [1,0,3,3,0,0,1,0,3,3,0,0,1,0,0,3,3,0,0,1],
+                    [1,0,3,3,0,0,0,0,3,3,0,0,0,0,0,3,3,0,0,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                    [1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,1,1]
+                ],
+                playerStart: { x: 2, y: 5 },
+                npcs: [
+                    { x: 10, y: 2, sprite: 'shiming', name: '李世民', dialogTrigger: 'ch3_shiming_chess' },
+                    { x: 8, y: 2, sprite: 'qiuran', name: '虯髯客', dialogTrigger: 'ch3_qiuran_chess' }
+                ]
+            },
+            'ch4_fuyu': {
+                name: '東南海外·扶餘國港口',
+                chapter: '終章：海外雄霸',
+                grid: [
+                    [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],
+                    [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],
+                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                    [1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1,1,1],
+                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                    [1,0,3,0,0,0,1,0,3,0,0,0,1,0,3,0,0,0,0,1],
+                    [1,0,3,0,0,0,1,0,3,0,0,0,1,0,3,0,0,0,0,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+                ],
+                playerStart: { x: 2, y: 5 },
+                npcs: [
+                    { x: 10, y: 5, sprite: 'qiuran', name: '扶餘國王·張仲堅', dialogTrigger: 'ch4_ending_talk' },
+                    { x: 8, y: 5, sprite: 'hongfu', name: '紅拂女', dialogTrigger: 'ch4_hongfu_ending' }
+                ]
+            }
+        };
+
+        function drawTile(x, y, type) {
+            const px = x * TILE_SIZE;
+            const py = y * TILE_SIZE;
+
+            if (type === 0) { // 青磚/木地板
+                ctx.fillStyle = '#2d241e';
+                ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+                ctx.fillStyle = '#3a2f27';
+                ctx.fillRect(px + 1, py + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+            } else if (type === 1) { // 木牆/深牆
+                ctx.fillStyle = '#120d0a';
+                ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+                ctx.fillStyle = '#8b0000';
+                ctx.fillRect(px + 2, py + 2, TILE_SIZE - 4, 4);
+            } else if (type === 2) { // 城門出口
+                ctx.fillStyle = '#d4af37';
+                ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+                ctx.fillStyle = '#5c0000';
+                ctx.fillRect(px + 4, py + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+            } else if (type === 3) { // 條案桌椅
+                ctx.fillStyle = '#2d241e';
+                ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+                ctx.fillStyle = '#5c3a21';
+                ctx.fillRect(px + 4, py + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+            } else if (type === 4) { // 海水
+                ctx.fillStyle = '#122c40';
+                ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+                ctx.fillStyle = '#1b4363';
+                ctx.fillRect(px + ((Date.now()/500)%10), py + 10, 12, 4);
+            }
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 4. 遊戲狀態與對話劇本                                                     */
+        /* -------------------------------------------------------------------------- */
+        let gameState = {
+            currentMapKey: 'ch1_changan',
+            player: { x: 2, y: 5, sprite: 'lijing', hp: 100, maxHp: 100, sp: 50 },
+            inDialog: false,
+            inBattle: false,
+            dialogQueue: [],
+            dialogIndex: 0,
+            typewriterTimer: null,
+            // 戰鬥數據
+            enemy: { name: '', hp: 100, maxHp: 100, sprite: 'soldier' }
+        };
+
+        const DIALOG_SCRIPTS = {
+            'ch1_soldier_warn': [
+                { speaker: '隋府侍衛', sprite: 'soldier', text: '站住！此乃司空楊素府邸，布衣狂徒切勿逗留！' },
+                { speaker: '李靖', sprite: 'lijing', text: '在下李靖，有兵法安邦之策欲面見司空！' }
+            ],
+            'ch1_hongfu_meet': [
+                { speaker: '紅拂女', sprite: 'hongfu', text: '公乃文武雙全之士，妾侍奉楊司空多年，未見如公者！' },
+                { speaker: '李靖', sprite: 'lijing', text: '姑娘過譽，長安非久留之地，隋朝氣數已盡...' },
+                { speaker: '紅拂女', sprite: 'hongfu', text: '妾願托喬木，連夜隨公私奔，同赴太原投效英雄！' },
+                { speaker: '【系統】', sprite: 'soldier', text: '楊素追兵發現私奔！觸發戰鬥！', triggerBattle: true, enemyName: '楊素府侍衛長', enemyHp: 120, nextMap: 'ch2_lingzhou' }
+            ],
+            'ch2_hongfu_comb': [
+                { speaker: '紅拂女', sprite: 'hongfu', text: '李郎，前方靈州客棧有一奇人跨蹇驢而至，不可輕慢。' }
+            ],
+            'ch2_qiuran_meet': [
+                { speaker: '虯髯客', sprite: 'qiuran', text: '老夫張仲堅！見妹子梳頭姿態非凡，特前來相識！牛肉肉醢在此，李郎敢共食否？' },
+                { speaker: '李靖', sprite: 'lijing', text: '有何不敢！張兄豪氣幹雲，靖佩服！' },
+                { speaker: '虯髯客', sprite: 'qiuran', text: '哈哈！聞太原李世民乃真命天子，李郎能引老夫一見否？' },
+                { speaker: '【系統】', sprite: 'qiuran', text: '結為風塵三俠！前往太原觀龍！', changeMap: 'ch3_taiyuan' }
+            ],
+            'ch3_shiming_chess': [
+                { speaker: '李世民', sprite: 'shiming', text: '二位遠道而來，世民幸甚！請入館對弈。' },
+                { speaker: '虯髯客', sprite: 'qiuran', text: '（觀李世民神采英發，長嘆）真天子也！老夫中原之志絕矣！' }
+            ],
+            'ch3_qiuran_chess': [
+                { speaker: '虯髯客', sprite: 'qiuran', text: '李郎！老夫將長安邸宅家產、兵法全數贈予你二人，助太原成就霸業！老夫當遠走海外！' },
+                { speaker: '【系統】', sprite: 'lijing', text: '獲得虯髯客千金資助與兵法！數年後揚帆出海...', changeMap: 'ch4_fuyu' }
+            ],
+            'ch4_ending_talk': [
+                { speaker: '虯髯客', sprite: 'qiuran', text: '李郎！妹子！老夫已攻下海外扶餘國稱王！中原大唐有李世民與李郎，海外有老夫，豈不快哉！' },
+                { speaker: '李靖', sprite: 'lijing', text: '兄長雄霸海外，風塵三俠傳奇千古流芳！' },
+                { speaker: '【系統】', sprite: 'lijing', text: '🎉 恭喜通關《風塵三俠傳：虯髯客》！經典傳奇圓滿落幕。' }
+            ],
+            'ch4_hongfu_ending': [
+                { speaker: '紅拂女', sprite: 'hongfu', text: '紅塵結義，三俠同心。願天下太平，永無戰亂！' }
+            ]
+        };
+
+        /* -------------------------------------------------------------------------- */
+        /* 5. 輸入控制 (Keyboard & Mobile Controller)                                */
+        /* -------------------------------------------------------------------------- */
+        const keys = {};
+
+        window.addEventListener('keydown', e => {
+            keys[e.code] = true;
+            if (e.code === 'Space' || e.code === 'Enter') {
+                handleActionKey();
+            }
+        });
+
+        window.addEventListener('keyup', e => {
+            keys[e.code] = false;
+        });
+
+        function setVirtualKey(code, state) {
+            keys[code] = state;
+            if (state && (code === 'Space' || code === 'Enter')) {
+                handleActionKey();
+            }
+        }
+
+        function handleActionKey() {
+            initAudio();
+            if (gameState.inDialog) {
+                advanceDialog();
+            } else if (!gameState.inBattle) {
+                checkNPCInteraction();
+            }
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 6. 對話系統邏輯                                                            */
+        /* -------------------------------------------------------------------------- */
+        function triggerDialogSequence(sequenceKey) {
+            const seq = DIALOG_SCRIPTS[sequenceKey];
+            if (!seq) return;
+
+            gameState.inDialog = true;
+            gameState.dialogQueue = seq;
+            gameState.dialogIndex = 0;
+
+            document.getElementById('dialog-box').classList.remove('hidden');
+            showCurrentDialog();
+        }
+
+        function showCurrentDialog() {
+            const current = gameState.dialogQueue[gameState.dialogIndex];
+            if (!current) {
+                closeDialog();
+                return;
+            }
+
+            playSound('select');
+            document.getElementById('dialog-speaker').innerText = `【${current.speaker}】`;
+            
+            // 繪製像素頭像
+            avatarCtx.clearRect(0, 0, 32, 32);
+            if (PIXEL_SPRITES[current.sprite]) {
+                drawPixelSprite(avatarCtx, PIXEL_SPRITES[current.sprite], 0, 0, 2);
+            }
+
+            // 打字機文字效果
+            const textElem = document.getElementById('dialog-text');
+            textElem.innerText = '';
+            let charIdx = 0;
+            if (gameState.typewriterTimer) clearInterval(gameState.typewriterTimer);
+
+            gameState.typewriterTimer = setInterval(() => {
+                if (charIdx < current.text.length) {
+                    textElem.innerText += current.text[charIdx];
+                    charIdx++;
+                } else {
+                    clearInterval(gameState.typewriterTimer);
+                }
+            }, 30);
+        }
+
+        function advanceDialog() {
+            const current = gameState.dialogQueue[gameState.dialogIndex];
+            
+            // 若觸發戰鬥
+            if (current && current.triggerBattle) {
+                closeDialog();
+                startBattle(current.enemyName, current.enemyHp, current.nextMap);
+                return;
+            }
+
+            // 若觸發地圖切換
+            if (current && current.changeMap) {
+                closeDialog();
+                switchMap(current.changeMap);
+                return;
+            }
+
+            gameState.dialogIndex++;
+            if (gameState.dialogIndex < gameState.dialogQueue.length) {
+                showCurrentDialog();
+            } else {
+                closeDialog();
+            }
+        }
+
+        function closeDialog() {
+            gameState.inDialog = false;
+            document.getElementById('dialog-box').classList.add('hidden');
+            if (gameState.typewriterTimer) clearInterval(gameState.typewriterTimer);
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 7. 戰鬥系統                                                                */
+        /* -------------------------------------------------------------------------- */
+        function startBattle(enemyName, enemyHp, nextMapAfterWin) {
+            gameState.inBattle = true;
+            gameState.enemy = { name: enemyName, hp: enemyHp, maxHp: enemyHp, sprite: 'soldier', nextMap: nextMapAfterWin };
+
+            document.getElementById('battle-menu').classList.remove('hidden');
+            updateBattleUI();
+        }
+
+        function updateBattleUI() {
+            document.getElementById('battle-enemy-status').innerText = `${gameState.enemy.name} HP: ${gameState.enemy.hp}/${gameState.enemy.maxHp}`;
+            document.getElementById('party-hp').innerText = `${gameState.player.hp}/${gameState.player.maxHp}`;
+            document.getElementById('party-sp').innerText = gameState.player.sp;
+        }
+
+        function handleBattleChoice(choice) {
+            if (!gameState.inBattle) return;
+
+            let pDmg = 0;
+            const hintElem = document.getElementById('battle-turn-hint');
+
+            if (choice === 'attack') {
+                pDmg = Math.floor(Math.random() * 15) + 20;
+                playSound('hit');
+                hintElem.innerText = `🗡️ 李靖揮劍斬擊，造成 ${pDmg} 點傷害！`;
+            } else if (choice === 'skill') {
+                pDmg = Math.floor(Math.random() * 25) + 30;
+                gameState.player.sp = Math.max(0, gameState.player.sp - 10);
+                playSound('hit');
+                hintElem.innerText = `📜 施展《兵法一擊》，造成 ${pDmg} 點重創！`;
+            } else if (choice === 'defend') {
+                gameState.player.hp = Math.min(100, gameState.player.hp + 20);
+                playSound('select');
+                hintElem.innerText = `🛡️ 橫劍架擋，恢復 20 點生命值。`;
+            } else if (choice === 'item') {
+                gameState.player.hp = Math.min(100, gameState.player.hp + 40);
+                playSound('win');
+                hintElem.innerText = `🍾 飲用紅拂佳釀，恢復 40 點生命值！`;
+            }
+
+            if (pDmg > 0) {
+                gameState.enemy.hp = Math.max(0, gameState.enemy.hp - pDmg);
+            }
+
+            updateBattleUI();
+
+            // 勝利判定
+            if (gameState.enemy.hp <= 0) {
+                playSound('win');
+                hintElem.innerText = `🎉 戰勝 ${gameState.enemy.name}！`;
+                setTimeout(() => {
+                    gameState.inBattle = false;
+                    document.getElementById('battle-menu').classList.add('hidden');
+                    if (gameState.enemy.nextMap) {
+                        switchMap(gameState.enemy.nextMap);
+                    }
+                }, 1200);
+                return;
+            }
+
+            // 敵人反擊
+            setTimeout(() => {
+                const eDmg = Math.floor(Math.random() * 10) + 10;
+                gameState.player.hp = Math.max(0, gameState.player.hp - eDmg);
+                playSound('hit');
+                hintElem.innerText += ` 💥 敵人反擊造成 ${eDmg} 傷害！`;
+                updateBattleUI();
+            }, 600);
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 8. 移動與碰撞檢測                                                          */
+        /* -------------------------------------------------------------------------- */
+        let lastMoveTime = 0;
+
+        function updatePlayerMovement() {
+            if (gameState.inDialog || gameState.inBattle) return;
+
+            const now = Date.now();
+            if (now - lastMoveTime < 140) return; // 限制移動頻率
+
+            let dx = 0;
+            let dy = 0;
+
+            if (keys['ArrowUp'] || keys['KeyW']) dy = -1;
+            else if (keys['ArrowDown'] || keys['KeyS']) dy = 1;
+            else if (keys['ArrowLeft'] || keys['KeyA']) dx = -1;
+            else if (keys['ArrowRight'] || keys['KeyD']) dx = 1;
+
+            if (dx !== 0 || dy !== 0) {
+                const newX = gameState.player.x + dx;
+                const newY = gameState.player.y + dy;
+
+                const currentMap = MAP_DATA[gameState.currentMapKey];
+
+                // 邊界與地形阻擋判定
+                if (newX >= 0 && newX < MAP_COLS && newY >= 0 && newY < MAP_ROWS) {
+                    const tileType = currentMap.grid[newY][newX];
+                    
+                    // 檢查是否有 NPC 阻擋
+                    const npcBlocking = currentMap.npcs.some(n => n.x === newX && n.y === newY);
+
+                    if (tileType !== 1 && tileType !== 3 && tileType !== 4 && !npcBlocking) {
+                        gameState.player.x = newX;
+                        gameState.player.y = newY;
+                        lastMoveTime = now;
+                        playSound('step');
+
+                        // 踩到門 (Tile == 2) 切換地圖
+                        if (tileType === 2) {
+                            if (gameState.currentMapKey === 'ch1_changan') switchMap('ch2_lingzhou');
+                            else if (gameState.currentMapKey === 'ch2_lingzhou') switchMap('ch3_taiyuan');
+                            else if (gameState.currentMapKey === 'ch3_taiyuan') switchMap('ch4_fuyu');
+                        }
+                    }
+                }
+            }
+        }
+
+        function checkNPCInteraction() {
+            const currentMap = MAP_DATA[gameState.currentMapKey];
+            const px = gameState.player.x;
+            const py = gameState.player.y;
+
+            // 搜尋玩家周圍 1 格的 NPC
+            const target = currentMap.npcs.find(n => Math.abs(n.x - px) + Math.abs(n.y - py) <= 1);
+            if (target && target.dialogTrigger) {
+                triggerDialogSequence(target.dialogTrigger);
+            }
+        }
+
+        function switchMap(mapKey) {
+            if (!MAP_DATA[mapKey]) return;
+
+            gameState.currentMapKey = mapKey;
+            const map = MAP_DATA[mapKey];
+
+            gameState.player.x = map.playerStart.x;
+            gameState.player.y = map.playerStart.y;
+
+            document.getElementById('chapter-title').innerText = map.chapter;
+            document.getElementById('quest-tag').innerHTML = `<i class="fa-solid fa-compass mr-1"></i>足跡: ${map.name}`;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 9. Canvas 主循環繪製 (Main Render Loop)                                   */
+        /* -------------------------------------------------------------------------- */
+        function renderGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const map = MAP_DATA[gameState.currentMapKey];
+
+            // 1. 繪製地圖 tiles
+            for (let r = 0; r < MAP_ROWS; r++) {
+                for (let c = 0; c < MAP_COLS; c++) {
+                    drawTile(c, r, map.grid[r][c]);
+                }
+            }
+
+            // 2. 繪製 NPC
+            map.npcs.forEach(npc => {
+                if (PIXEL_SPRITES[npc.sprite]) {
+                    drawPixelSprite(ctx, PIXEL_SPRITES[npc.sprite], npc.x * TILE_SIZE, npc.y * TILE_SIZE, 2);
+                }
+            });
+
+            // 3. 繪製主角 (李靖)
+            drawPixelSprite(ctx, PIXEL_SPRITES[gameState.player.sprite], gameState.player.x * TILE_SIZE, gameState.player.y * TILE_SIZE, 2);
+
+            // 4. 若處於戰鬥狀態，繪製經典 JRPG 對峙畫面
+            if (gameState.inBattle) {
+                // 戰鬥暗色背景
+                ctx.fillStyle = 'rgba(10, 8, 6, 0.88)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 我方 (李靖)
+                drawPixelSprite(ctx, PIXEL_SPRITES['lijing'], 80, 180, 5);
+                ctx.fillStyle = '#d4af37';
+                ctx.font = '12px "Noto Serif TC"';
+                ctx.fillText('李靖', 85, 270);
+
+                // 敵方
+                drawPixelSprite(ctx, PIXEL_SPRITES[gameState.enemy.sprite], 440, 100, 5);
+                ctx.fillStyle = '#a81c1c';
+                ctx.fillText(gameState.enemy.name, 440, 190);
+            }
+
+            updatePlayerMovement();
+            requestAnimationFrame(renderGame);
+        }
+
+        // 啟動遊戲
+        window.onload = function() {
+            renderGame();
+        };
+    </script>
+</body>
+</html>
