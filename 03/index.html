@@ -1,0 +1,3235 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>虯髯客傳：風塵三俠｜高畫質古風武俠動作 RPG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle at center, #1c140d 0%, #090604 100%);
+            color: #f5f5f4;
+            font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .gold-border {
+            border: 2px solid #d97706;
+            box-shadow: 0 0 20px rgba(217, 119, 6, 0.25), inset 0 0 12px rgba(217, 119, 6, 0.15);
+        }
+        .btn-ancient {
+            background: linear-gradient(180deg, #451a03 0%, #290f02 100%);
+            border: 1px solid #f59e0b;
+            color: #fef3c7;
+            transition: all 0.15s ease;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+        }
+        .btn-ancient:hover {
+            background: linear-gradient(180deg, #78350f 0%, #451a03 100%);
+            border-color: #fde047;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+        }
+        .btn-ancient:active {
+            transform: translateY(0px);
+        }
+        .btn-chap-active {
+            background: linear-gradient(180deg, #b45309 0%, #78350f 100%) !important;
+            border-color: #fef08a !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
+        }
+        .skill-slot {
+            background: linear-gradient(180deg, rgba(28, 19, 13, 0.95) 0%, rgba(12, 8, 5, 0.98) 100%);
+            border: 1.5px solid #b45309;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.12s;
+        }
+        .skill-slot:hover {
+            border-color: #fde047;
+            transform: translateY(-2px);
+        }
+        .skill-slot:active {
+            transform: scale(0.96);
+        }
+        /* 自訂捲軸 */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #140d08; }
+        ::-webkit-scrollbar-thumb { background: #92400e; border-radius: 4px; border: 1px solid #fbbf24; }
+        ::-webkit-scrollbar-thumb:hover { background: #b45309; }
+
+        @keyframes pulseGold {
+            0%, 100% { box-shadow: 0 0 8px #f59e0b, inset 0 0 8px #f59e0b; }
+            50% { box-shadow: 0 0 22px #fde047, inset 0 0 14px #ef4444; }
+        }
+        .ult-ready-glow {
+            animation: pulseGold 1.2s infinite;
+            border-color: #fde047 !important;
+        }
+    </style>
+</head>
+<body class="select-none">
+
+    <!-- 頂部導覽與章節快速跳轉列 -->
+    <header class="w-full bg-[#120b07]/95 border-b border-amber-700/80 px-2 py-1.5 flex flex-wrap items-center justify-between gap-1.5 z-30 shrink-0">
+        <!-- 左側：標題與章節快速切換 -->
+        <div class="flex items-center gap-1.5 flex-wrap">
+            <div class="flex items-center gap-1.5 bg-amber-950/80 border border-amber-500/70 px-2.5 py-1 rounded">
+                <span class="text-amber-400 font-black tracking-wider text-sm sm:text-base">⚔️ 虯髯客傳：風塵三俠</span>
+            </div>
+            <div class="flex items-center gap-1 flex-wrap" id="chapter-nav-btns">
+                <button onclick="jumpToChapter(0)" id="chap-btn-0" class="btn-ancient px-2 py-1 rounded text-xs font-bold">序章・備戰大廳</button>
+                <button onclick="jumpToChapter(1)" id="chap-btn-1" class="btn-ancient px-2 py-1 rounded text-xs font-bold">一・長安夜奔</button>
+                <button onclick="jumpToChapter(2)" id="chap-btn-2" class="btn-ancient px-2 py-1 rounded text-xs font-bold">二・靈石客棧</button>
+                <button onclick="jumpToChapter(3)" id="chap-btn-3" class="btn-ancient px-2 py-1 rounded text-xs font-bold">三・汾河古道</button>
+                <button onclick="jumpToChapter(4)" id="chap-btn-4" class="btn-ancient px-2 py-1 rounded text-xs font-bold">四・太原弈棋</button>
+                <button onclick="jumpToChapter(5)" id="chap-btn-5" class="btn-ancient px-2 py-1 rounded text-xs font-bold">五・洛陽贈財</button>
+            </div>
+        </div>
+
+        <!-- 右側：功能面板按鈕 -->
+        <div class="flex items-center gap-1.5 flex-wrap">
+            <button onclick="cycleDifficulty()" id="btn-difficulty" class="btn-ancient px-2.5 py-1 rounded text-xs font-bold text-amber-200">
+                🔥 難度：標準挑戰
+            </button>
+            <button onclick="openModal('modal-shop')" class="btn-ancient px-2.5 py-1 rounded text-xs font-bold flex items-center gap-1">
+                <span>⚒️ 鍛造與藥商(B)</span>
+                <span id="header-coin-badge" class="bg-amber-900/90 text-amber-300 px-1.5 py-0.2 rounded text-[11px]">350錢</span>
+            </button>
+            <button onclick="openModal('modal-custom-img')" class="btn-ancient px-2.5 py-1 rounded text-xs font-bold text-emerald-300 border-emerald-500/80">
+                🖼️ 換圖/地圖
+            </button>
+            <button onclick="openModal('modal-codex')" class="btn-ancient px-2.5 py-1 rounded text-xs font-bold text-sky-300">
+                📘 國文圖鑑
+            </button>
+            <button onclick="openModal('modal-qa-cheat')" class="btn-ancient px-2.5 py-1 rounded text-xs font-bold text-rose-200">
+                📝 考題小抄(12題)
+            </button>
+        </div>
+    </header>
+
+    <!-- 中央主遊戲畫布區域 -->
+    <main class="relative flex-1 w-full flex items-center justify-center bg-[#080503] overflow-hidden p-1">
+        <div class="relative w-full h-full max-w-[1120px] max-h-[600px] flex items-center justify-center">
+            <canvas id="gameCanvas" width="1024" height="550" class="w-full h-full object-contain rounded-lg gold-border bg-[#110b07] cursor-crosshair"></canvas>
+
+            <!-- 互動式國文問答 / 人物對話覆蓋層 (包含左側高清半身立繪 Canvas) -->
+            <div id="dialogue-overlay" class="hidden absolute inset-x-3 bottom-3 bg-gradient-to-b from-[#1f130c]/98 to-[#0e0805]/98 border-2 border-amber-500 rounded-xl p-3 sm:p-4 shadow-2xl z-20">
+                <div class="flex flex-col sm:flex-row gap-4 items-center sm:items-stretch">
+                    <!-- 左側：即時渲染的高清角色半身立繪框 -->
+                    <div class="relative w-28 h-36 sm:w-36 sm:h-44 shrink-0 bg-[#140c07] border-2 border-amber-600 rounded-lg overflow-hidden flex flex-col items-center justify-between shadow-inner">
+                        <canvas id="portraitCanvas" width="144" height="150" class="w-full h-[136px] object-cover"></canvas>
+                        <div id="dialogue-speaker-tag" class="w-full bg-amber-900/95 text-amber-200 text-center text-xs font-black py-1 border-t border-amber-600 truncate px-1">
+                            虯髯客
+                        </div>
+                    </div>
+
+                    <!-- 右側：對話內容與國文選擇題選項 -->
+                    <div class="flex-1 flex flex-col justify-between min-w-0 w-full">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-1.5">
+                                <span id="dialogue-title-badge" class="bg-amber-800/80 border border-amber-400 text-amber-200 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                                    📜 歷史劇情演繹
+                                </span>
+                                <span id="dialogue-player-status" class="text-xs font-bold text-emerald-400 bg-black/60 px-2.5 py-0.5 rounded border border-emerald-700/60">
+                                    ❤️ 氣血 150/150 ｜ 💰 350 錢 ｜ 🧪 2 瓶
+                                </span>
+                            </div>
+                            <p id="dialogue-text" class="text-stone-100 text-sm sm:text-base leading-relaxed font-medium tracking-wide min-h-[3.2rem]">
+                                載入對話中...
+                            </p>
+                        </div>
+
+                        <!-- 選擇題或商店按鈕區 -->
+                        <div id="dialogue-options" class="mt-2.5 flex flex-col gap-1.5"></div>
+
+                        <!-- 答題解析或天雷警告回饋 -->
+                        <div id="dialogue-feedback" class="hidden mt-2 p-2 rounded border text-xs sm:text-sm font-bold leading-snug"></div>
+
+                        <!-- 底部繼續提示 -->
+                        <div id="dialogue-next-hint" class="mt-2 flex justify-between items-center text-xs text-amber-400 font-bold">
+                            <span>💡 提示：靠近人物或物件按 [E] 互動</span>
+                            <button onclick="advanceDialogue()" class="btn-ancient px-4 py-1 rounded text-xs font-black">
+                                繼續對話 [空白鍵 / E] ▶
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 底部戰鬥技能與快捷操作列 -->
+    <footer class="w-full bg-[#120b07]/95 border-t border-amber-800/80 px-2 py-1.5 flex flex-wrap items-center justify-between gap-2 z-30 shrink-0">
+        <!-- 左側移動與互動說明 -->
+        <div class="hidden lg:flex items-center gap-2 text-xs text-stone-300">
+            <span class="bg-stone-800 border border-stone-600 px-2 py-0.5 rounded text-amber-300 font-bold">WASD / 方向鍵</span>
+            <span>八向移動</span>
+            <span class="bg-stone-800 border border-stone-600 px-2 py-0.5 rounded text-amber-300 font-bold ml-1">E / 點擊人物</span>
+            <span>對話/買藥/解謎</span>
+        </div>
+
+        <!-- 中央核心戰鬥技能按鈕列 (支援滑鼠點擊與鍵盤施放) -->
+        <div class="flex items-center justify-center gap-1.5 sm:gap-2 mx-auto flex-wrap">
+            <button onclick="triggerAction('INTERACT')" class="skill-slot px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs">
+                <span class="bg-amber-700 text-white font-black px-1.5 py-0.5 rounded text-[11px]">E</span>
+                <div class="text-left">
+                    <div class="text-amber-300 font-bold leading-none">互動/調查</div>
+                    <div class="text-[10px] text-stone-400">對話/開箱</div>
+                </div>
+            </button>
+
+            <button onclick="triggerAction('ATTACK')" class="skill-slot px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs">
+                <span class="bg-red-800 text-white font-black px-1.5 py-0.5 rounded text-[11px]">J</span>
+                <div class="text-left">
+                    <div class="text-red-300 font-bold leading-none">巨闕三連斬</div>
+                    <div class="text-[10px] text-stone-400">普攻回氣</div>
+                </div>
+            </button>
+
+            <button onclick="triggerAction('SKILL_K')" class="skill-slot px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs">
+                <span class="bg-orange-700 text-white font-black px-1.5 py-0.5 rounded text-[11px]">K</span>
+                <div class="text-left">
+                    <div class="text-orange-300 font-bold leading-none">赤龍破空斬</div>
+                    <div class="text-[10px] text-sky-300">20 SP・劍氣</div>
+                </div>
+            </button>
+
+            <button onclick="triggerAction('SKILL_U')" class="skill-slot px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs">
+                <span class="bg-amber-600 text-white font-black px-1.5 py-0.5 rounded text-[11px]">U</span>
+                <div class="text-left">
+                    <div class="text-yellow-300 font-bold leading-none">霸王裂地破</div>
+                    <div class="text-[10px] text-yellow-200">35 SP・碎罡氣</div>
+                </div>
+            </button>
+
+            <button onclick="triggerAction('SKILL_I')" id="btn-skill-ult" class="skill-slot px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs">
+                <span class="bg-purple-700 text-white font-black px-1.5 py-0.5 rounded text-[11px]">I</span>
+                <div class="text-left">
+                    <div class="text-purple-300 font-bold leading-none">風塵三俠合擊</div>
+                    <div class="text-[10px] text-purple-200">55 SP・全屏大招</div>
+                </div>
+            </button>
+
+            <button onclick="triggerAction('DASH')" class="skill-slot px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs">
+                <span class="bg-sky-700 text-white font-black px-1.5 py-0.5 rounded text-[11px]">L</span>
+                <div class="text-left">
+                    <div class="text-sky-300 font-bold leading-none">疾風步閃避</div>
+                    <div class="text-[10px] text-stone-400">無敵幀/極限回氣</div>
+                </div>
+            </button>
+
+            <button onclick="triggerAction('POTION')" class="skill-slot px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs border-emerald-600">
+                <span class="bg-emerald-700 text-white font-black px-1.5 py-0.5 rounded text-[11px]">H</span>
+                <div class="text-left">
+                    <div class="text-emerald-300 font-bold leading-none">千年回春水 <span id="footer-potion-count" class="text-white">(2)</span></div>
+                    <div class="text-[10px] text-emerald-200">+50%HP / +35SP</div>
+                </div>
+            </button>
+        </div>
+
+        <!-- 右側輔助按鈕 -->
+        <div class="hidden xl:flex items-center gap-1.5 text-xs">
+            <button onclick="healFullForDemo()" class="btn-ancient px-2 py-1 rounded text-[11px] text-emerald-300" title="報告展示用：一鍵回滿狀態">
+                ✨ 狀態全滿(展示輔助)
+            </button>
+        </div>
+    </footer>
+
+    <!-- ==================== 彈出式視窗區 (Modals) ==================== -->
+
+    <!-- 1. 開場歡迎與章節導覽視窗 -->
+    <div id="modal-start" class="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gradient-to-b from-[#23150d] to-[#110a06] border-2 border-amber-500 rounded-2xl max-w-3xl w-full p-5 sm:p-6 shadow-2xl text-stone-100 max-h-[92vh] overflow-y-auto">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-amber-700/70 pb-3">
+                <div>
+                    <span class="bg-amber-900/90 text-amber-300 border border-amber-500 px-2.5 py-0.5 rounded-full text-xs font-bold">唐代豪俠傳奇・杜光庭《虯髯客傳》改編</span>
+                    <h1 class="text-2xl sm:text-3xl font-black text-amber-400 mt-1 tracking-wide">⚔️ 《虯髯客傳：風塵三俠》史詩動作 RPG</h1>
+                </div>
+                <span class="text-xs text-emerald-300 bg-emerald-950/90 border border-emerald-500/60 px-2.5 py-1 rounded font-bold">
+                    ✅ 國文課報告互動專用版
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 my-4 text-xs sm:text-sm">
+                <div class="bg-black/50 border border-amber-800/70 rounded-xl p-3.5">
+                    <h3 class="text-amber-300 font-bold text-sm mb-1.5">🏮 序章安全備戰大廳 + 100錢藥商</h3>
+                    <ul class="space-y-1 text-stone-300 list-disc list-inside">
+                        <li>開局進入零敵人的**【終南山備戰大廳】**，可先打**「機關木人樁」**練習連招手感，準備好再踏入傳送陣。</li>
+                        <li>大廳與各章起點皆有**「🧪 西域藥商・胡萬金」**，花 **100 五銖錢**即可購買補血藥水（戰鬥中按 **`H` 鍵**飲用恢復 50% 氣血與 35 真氣）。</li>
+                    </ul>
+                </div>
+                <div class="bg-black/50 border border-amber-800/70 rounded-xl p-3.5">
+                    <h3 class="text-amber-300 font-bold text-sm mb-1.5">⚡ 隨機選項國文考題 + 天雷扣血 45 HP</h3>
+                    <ul class="space-y-1 text-stone-300 list-disc list-inside">
+                        <li>內建 **12 道精選《虯髯客傳》選擇題**，正確答案均勻打散在 **`[1]`、`[2]`、`[3]`**，並附詳盡課文解析。</li>
+                        <li>**答錯懲罰**：觸發**「文氣反噬・天雷轟頂」**，降下閃電並直接**扣除 45 點氣血**！</li>
+                    </ul>
+                </div>
+                <div class="bg-black/50 border border-amber-800/70 rounded-xl p-3.5">
+                    <h3 class="text-amber-300 font-bold text-sm mb-1.5">👹 二階段狂暴 Boss 戰 + 護體罡氣破防</h3>
+                    <ul class="space-y-1 text-stone-300 list-disc list-inside">
+                        <li>Boss 具備**「黃色護體罡氣條」**，施放 **`U` 霸王裂地破** 擊碎罡氣後，Boss 會陷入 **4 秒 1.8 倍受傷虛弱狀態**。</li>
+                        <li>血量低於 55% 進入**【二階段狂暴】**，施放衝鋒、天雷圈、弧月劍氣與旋風斬四大紅區殺招！</li>
+                    </ul>
+                </div>
+                <div class="bg-black/50 border border-emerald-800/70 rounded-xl p-3.5">
+                    <h3 class="text-emerald-300 font-bold text-sm mb-1.5">🖼️ 自訂圖片與地圖即時替換器</h3>
+                    <ul class="space-y-1 text-stone-300 list-disc list-inside">
+                        <li>內建精細手繪古風多層次角色建模與對話半身立繪。</li>
+                        <li>點擊上方**「🖼️ 換圖/地圖」**，還能隨時從電腦上傳你自己畫的角色圖或背景地圖即時替換！</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-amber-800/60">
+                <div class="text-xs text-stone-400">
+                    💡 報告小秘訣：點擊頂部導覽列可**隨時一鍵跳轉至任一章節**展示劇情或直接挑戰 Boss！
+                </div>
+                <button onclick="closeModal('modal-start')" class="btn-ancient px-6 py-2.5 rounded-xl text-base font-black tracking-wider shadow-lg">
+                    ⚔️ 進入【序章：終南山・俠隱備戰大廳】
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 鐵匠鍛造與行腳藥商鋪視窗 (B鍵) -->
+    <div id="modal-shop" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gradient-to-b from-[#23150d] to-[#110a06] border-2 border-amber-500 rounded-2xl max-w-2xl w-full p-5 shadow-2xl text-stone-100 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-amber-700 pb-3 mb-4">
+                <div>
+                    <h2 class="text-xl font-black text-amber-400">⚒️ 西域行腳藥商 ＆ 崑崙神兵鍛造鋪</h2>
+                    <p class="text-xs text-stone-400 mt-0.5">使用「五銖錢」購買 100 錢回春藥水或強化虯髯客的武裝</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="shop-coin-text" class="bg-amber-950 border border-amber-500 text-amber-300 px-3 py-1 rounded-lg font-black text-sm">
+                        💰 350 五銖錢
+                    </span>
+                    <button onclick="closeModal('modal-shop')" class="btn-ancient px-3 py-1 rounded-lg text-xs font-bold">✕ 關閉</button>
+                </div>
+            </div>
+
+            <div id="shop-items-list" class="space-y-2.5"></div>
+
+            <div class="mt-4 pt-3 border-t border-amber-800/60 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span class="text-stone-400">💡 擊敗敵人、打破木箱或答對國文考題皆可獲得五銖錢。</span>
+                <button onclick="addDemoCoins()" class="btn-ancient px-3 py-1 rounded text-amber-300 font-bold">
+                    🎁 報告展示補助：免費領取 +500 五銖錢
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 🖼️ 自訂圖片與地圖即時替換器視窗 -->
+    <div id="modal-custom-img" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gradient-to-b from-[#1a1814] to-[#0d0b09] border-2 border-emerald-500 rounded-2xl max-w-3xl w-full p-5 shadow-2xl text-stone-100 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-emerald-700/70 pb-3 mb-3">
+                <div>
+                    <h2 class="text-xl font-black text-emerald-400">🖼️ 自訂角色圖片 ＆ 章節地圖即時匯入器</h2>
+                    <p class="text-xs text-stone-300 mt-0.5">直接從電腦選取圖片（支援透明去背 PNG / JPG）或貼上圖片網址，遊戲畫面會立即替換！</p>
+                </div>
+                <button onclick="closeModal('modal-custom-img')" class="btn-ancient px-3 py-1 rounded-lg text-xs font-bold">✕ 返回遊戲</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <!-- 左欄：角色圖片替換 -->
+                <div class="bg-black/50 border border-stone-700 rounded-xl p-3.5 space-y-2.5">
+                    <h3 class="text-amber-300 font-bold text-sm border-b border-stone-700 pb-1">👤 角色與 Boss 外觀替換（建議去背 PNG）</h3>
+                    <div id="custom-char-list" class="space-y-2"></div>
+                </div>
+
+                <!-- 右欄：六大章節地圖背景替換 -->
+                <div class="bg-black/50 border border-stone-700 rounded-xl p-3.5 space-y-2.5">
+                    <h3 class="text-sky-300 font-bold text-sm border-b border-stone-700 pb-1">🗺️ 六大章節背景地圖替換（建議 16:9 橫圖）</h3>
+                    <div id="custom-map-list" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-stone-700 flex items-center justify-between">
+                <span class="text-xs text-stone-400">💡 若未上傳自訂圖片，系統將自動使用內建的「高精細手繪古風多層次建模」。</span>
+                <button onclick="resetAllCustomImages()" class="bg-rose-900/80 hover:bg-rose-800 border border-rose-500 text-rose-100 px-3 py-1.5 rounded-lg text-xs font-bold">
+                    🔄 一鍵恢復預設手繪古風建模與地圖
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 📘 國文核心考點圖鑑視窗 -->
+    <div id="modal-codex" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gradient-to-b from-[#23150d] to-[#110a06] border-2 border-amber-500 rounded-2xl max-w-4xl w-full p-5 shadow-2xl text-stone-100 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-amber-700 pb-3 mb-4">
+                <div>
+                    <h2 class="text-xl font-black text-amber-400">📘 《虯髯客傳》國文核心考點與人物解析圖鑑</h2>
+                    <p class="text-xs text-stone-400 mt-0.5">上台報告可直接投影此頁，為全班講解唐代傳奇小說之最的文學價值</p>
+                </div>
+                <button onclick="closeModal('modal-codex')" class="btn-ancient px-3 py-1 rounded-lg text-xs font-bold">✕ 關閉</button>
+            </div>
+
+            <div id="codex-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs sm:text-sm"></div>
+        </div>
+    </div>
+
+    <!-- 5. 📝 12道國文考題題庫與解答小抄 (上台報告專用) -->
+    <div id="modal-qa-cheat" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gradient-to-b from-[#23150d] to-[#110a06] border-2 border-rose-500 rounded-2xl max-w-4xl w-full p-5 shadow-2xl text-stone-100 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-rose-800 pb-3 mb-3">
+                <div>
+                    <h2 class="text-xl font-black text-rose-300">📝 遊戲內建 12 道《虯髯客傳》選擇題題庫與解答小抄</h2>
+                    <p class="text-xs text-stone-300 mt-0.5">正確答案已均勻隨機分佈於 [1]、[2]、[3]，可在報告時直接點擊「現場出題考同學」！</p>
+                </div>
+                <button onclick="closeModal('modal-qa-cheat')" class="btn-ancient px-3 py-1 rounded-lg text-xs font-bold">✕ 關閉</button>
+            </div>
+
+            <div id="qa-cheat-list" class="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs"></div>
+        </div>
+    </div>
+
+    <!-- 6. 🏆 通關結算成績單視窗 -->
+    <div id="modal-victory" class="hidden fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gradient-to-b from-[#2b180a] to-[#120904] border-2 border-amber-400 rounded-2xl max-w-xl w-full p-6 shadow-2xl text-center text-stone-100">
+            <div class="text-amber-400 text-xs font-bold tracking-widest uppercase">貞觀十年・扶餘國主</div>
+            <h2 class="text-3xl font-black text-amber-300 mt-1 mb-2">🏆 功成身退・海上稱王 🏆</h2>
+            <p class="text-xs sm:text-sm text-stone-300 leading-relaxed mb-4">
+                「乃入海，帆十萬，入扶餘國，殺其主自立。」<br>
+                虯髯客洞悉天命，傾囊資助李靖與紅拂女輔佐真龍天子李世民開創大唐貞觀盛世，自己亦於海外開疆闢土，成就千古豪俠美名！
+            </p>
+
+            <div class="grid grid-cols-2 gap-2.5 bg-black/50 border border-amber-700/80 rounded-xl p-4 mb-5 text-left text-xs sm:text-sm">
+                <div>🎯 國文考題答對：<span id="vic-qa" class="text-amber-300 font-black">0 / 12 題</span></div>
+                <div>⚡ 天雷受罰次數：<span id="vic-thunder" class="text-rose-400 font-black">0 次</span></div>
+                <div>⚔️ 擊退亂世敵軍：<span id="vic-kills" class="text-emerald-300 font-black">0 名</span></div>
+                <div>👑 歷史俠客評價：<span id="vic-rank" class="text-yellow-300 font-black">風塵三俠・文武雙全</span></div>
+            </div>
+
+            <div class="flex justify-center gap-3">
+                <button onclick="closeModal('modal-victory'); openModal('modal-codex');" class="btn-ancient px-4 py-2 rounded-xl text-xs sm:text-sm font-bold">
+                    📘 檢視國文考點總結
+                </button>
+                <button onclick="closeModal('modal-victory'); jumpToChapter(0);" class="btn-ancient px-5 py-2 rounded-xl text-xs sm:text-sm font-black">
+                    🔄 返回備戰大廳重溫
+                </button>
+            </div>
+        </div>
+    </div>
+
+<script>
+/**
+ * ============================================================================
+ * 《虯髯客傳：風塵三俠》完整單一檔案遊戲引擎
+ * 包含：Web Audio 古風音效合成、多層次手繪古風人物建模、對話半身立繪、
+ * 自訂圖片即時替換器、12道隨機選項國文考題(答錯天雷扣45HP)、100錢藥商與狂暴Boss戰
+ * ============================================================================
+ */
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const portraitCanvas = document.getElementById('portraitCanvas');
+const pCtx = portraitCanvas.getContext('2d');
+
+const W = 1024;
+const H = 550;
+let globalTick = 0;
+
+// --- Web Audio API 無外部依賴古風音效合成器 ---
+let audioCtx = null;
+function initAudio() {
+    if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) audioCtx = new AudioContext();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+function playSFX(type) {
+    try {
+        initAudio();
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+
+        if (type === 'slash') {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(320, now);
+            osc.frequency.exponentialRampToValueAtTime(75, now + 0.14);
+            gain.gain.setValueAtTime(0.22, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.14);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.14);
+        } else if (type === 'hit') {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(160, now);
+            osc.frequency.exponentialRampToValueAtTime(42, now + 0.12);
+            gain.gain.setValueAtTime(0.28, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.12);
+        } else if (type === 'quake') {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(110, now);
+            osc.frequency.exponentialRampToValueAtTime(28, now + 0.38);
+            gain.gain.setValueAtTime(0.38, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.38);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.38);
+        } else if (type === 'thunder') {
+            // 答錯題天雷轟頂音效
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(480, now);
+            osc.frequency.exponentialRampToValueAtTime(38, now + 0.55);
+            gain.gain.setValueAtTime(0.45, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.55);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.55);
+        } else if (type === 'coin' || type === 'correct') {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, now); // D5
+            osc.frequency.setValueAtTime(880, now + 0.08); // A5
+            gain.gain.setValueAtTime(0.22, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.28);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.28);
+        } else if (type === 'potion') {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(440, now);
+            osc.frequency.exponentialRampToValueAtTime(784, now + 0.25);
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.25);
+        }
+    } catch (e) {}
+}
+
+// --- 自訂圖片與地圖即時替換系統 ---
+const customImages = {
+    chars: {
+        PLAYER: null,
+        HONGFU: null,
+        LIJING: null,
+        LISHIMIN: null,
+        MERCHANT: null,
+        ENEMY: null,
+        BOSS: null
+    },
+    maps: {
+        0: null, 1: null, 2: null, 3: null, 4: null, 5: null
+    }
+};
+
+function initCustomImagePanel() {
+    const charConfigs = [
+        { key: 'PLAYER', label: '主角：虯髯客（張仲堅）' },
+        { key: 'HONGFU', label: '夥伴：紅拂女（張出塵）' },
+        { key: 'LIJING', label: '夥伴：李靖（李藥師）' },
+        { key: 'LISHIMIN', label: '名士：太原公子・李世民' },
+        { key: 'MERCHANT', label: '商人：西域藥商・胡萬金' },
+        { key: 'ENEMY', label: '反派：隋軍虎賁衛 / 惡霸' },
+        { key: 'BOSS', label: '首領：守關大將軍 Boss' }
+    ];
+    const charContainer = document.getElementById('custom-char-list');
+    charContainer.innerHTML = '';
+    charConfigs.forEach(cfg => {
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between gap-2 bg-stone-900/90 p-2 rounded border border-stone-700';
+        div.innerHTML = `
+            <span class="font-bold text-stone-200">${cfg.label}</span>
+            <label class="btn-ancient px-2.5 py-1 rounded cursor-pointer text-[11px] shrink-0">
+                📂 選擇圖檔
+                <input type="file" accept="image/*" class="hidden" onchange="uploadCustomAsset('chars', '${cfg.key}', this)">
+            </label>
+        `;
+        charContainer.appendChild(div);
+    });
+
+    const mapConfigs = [
+        { key: 0, label: '序章：終南山・俠隱備戰大廳' },
+        { key: 1, label: '第一章：西京長安・紅拂夜奔' },
+        { key: 2, label: '第二章：靈石客棧・風塵結義' },
+        { key: 3, label: '第三章：汾河古道・望氣尋龍' },
+        { key: 4, label: '第四章：太原行館・弈棋見真龍' },
+        { key: 5, label: '第五章：東都洛陽・傾囊相授' }
+    ];
+    const mapContainer = document.getElementById('custom-map-list');
+    mapContainer.innerHTML = '';
+    mapConfigs.forEach(cfg => {
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between gap-2 bg-stone-900/90 p-2 rounded border border-stone-700';
+        div.innerHTML = `
+            <span class="font-bold text-stone-200">${cfg.label}</span>
+            <label class="btn-ancient px-2.5 py-1 rounded cursor-pointer text-[11px] shrink-0">
+                🗺️ 選擇背景圖
+                <input type="file" accept="image/*" class="hidden" onchange="uploadCustomAsset('maps', '${cfg.key}', this)">
+            </label>
+        `;
+        mapContainer.appendChild(div);
+    });
+}
+
+function uploadCustomAsset(category, key, inputEl) {
+    if (!inputEl.files || !inputEl.files[0]) return;
+    const file = inputEl.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            customImages[category][key] = img;
+            spawnFloatText(player.x, player.y - 45, `✨ 已成功套用自訂圖片！`, '#34d399', 18);
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function resetAllCustomImages() {
+    Object.keys(customImages.chars).forEach(k => customImages.chars[k] = null);
+    Object.keys(customImages.maps).forEach(k => customImages.maps[k] = null);
+    spawnFloatText(player.x, player.y - 45, `🔄 已恢復預設精細手繪古風建模！`, '#fbbf24', 18);
+    closeModal('modal-custom-img');
+}
+
+// --- 12 道《虯髯客傳》精選國文考題 (正確答案均勻打散於 1, 2, 3，絕不固定第2個) ---
+const QA_DATABASE = [
+    {
+        id: 1,
+        chap: '序章・備戰大廳',
+        q: '【第 1 題】《虯髯客傳》被譽為唐代豪俠傳奇之冠，請問其作者與所處時代為何？',
+        options: [
+            '1. 元稹（中唐時期）',
+            '2. 白行簡（中唐時期）',
+            '3. 杜光庭（唐末五代道士、文學家）'
+        ],
+        correct: 3, // 答案 3
+        expl: '【課文詳解】《虯髯客傳》作者為唐末五代道士杜光庭，全篇結構嚴謹，塑造出「風塵三俠」鮮明形象。'
+    },
+    {
+        id: 2,
+        chap: '第一章・西京長安',
+        q: '【第 2 題】故事開端，李靖以布衣之身前往獻策，卻遭哪一位「驕貴自傲、姬妾羅列」的隋朝權臣冷遇？',
+        options: [
+            '1. 越國公・楊素（司空）',
+            '2. 隋煬帝・楊廣',
+            '3. 宇文化及'
+        ],
+        correct: 1, // 答案 1
+        expl: '【課文詳解】楊素貴為越國公，面對天下危機卻「踞床而見」，反被身後的紅拂女識出李靖非凡之才。'
+    },
+    {
+        id: 3,
+        chap: '第一章・西京長安',
+        q: '【第 3 題】紅拂女慧眼識英雄，當夜投奔李靖逆旅時，身穿何種裝束叩門？',
+        options: [
+            '1. 披掛黃金鎖子甲、手持長槍',
+            '2. 身穿大紅嫁衣、頭戴鳳冠',
+            '3. 紫衣戴帽，手執一革囊'
+        ],
+        correct: 3, // 答案 3
+        expl: '【課文詳解】原文載：「夜五鼓，聞扣門聲低…則紫衣戴帽人，杖揭一囊。」展現紅拂女果決機敏的俠女風範。'
+    },
+    {
+        id: 4,
+        chap: '第一章・西京長安',
+        q: '【第 4 題】紅拂女向李靖自述為何決心離開楊素府第，她用了哪一句名言比喻自己的覺醒？',
+        options: [
+            '1. 「良禽擇木而棲，賢臣擇主而事。」',
+            '2. 「絲蘿非獨生，願託喬木，故來奔耳。」',
+            '3. 「燕雀安知鴻鵠之志哉！」'
+        ],
+        correct: 2, // 答案 2
+        expl: '【課文詳解】紅拂女言「屍居餘氣，不足畏也…絲蘿非獨生，願託喬木」，以兔絲附喬木比喻願終身託付李靖。'
+    },
+    {
+        id: 5,
+        chap: '第二章・靈石客棧',
+        q: '【第 5 題】在靈石旅舍中，虯髯客闖入臥看紅拂女梳頭，當時正在刷馬的李靖有何心理反應？',
+        options: [
+            '1. 靖怒甚，未決，猶刷馬（強忍怒火，權衡局勢）',
+            '2. 立即拔劍與虯髯客決一死戰',
+            '3. 嚇得魂飛魄散，躲進馬廄不敢出聲'
+        ],
+        correct: 1, // 答案 1
+        expl: '【課文詳解】「靖怒甚，未決，猶刷馬」僅七字便生動刻劃李靖雖極度憤怒，卻能沉著觀察、不輕易魯莽動手的儒將性格。'
+    },
+    {
+        id: 6,
+        chap: '第二章・靈石客棧',
+        q: '【第 6 題】紅拂女在客棧面對陌生豪客臥看梳頭，如何展現過人的應變智慧化解衝突？',
+        options: [
+            '1. 大聲呼救引來官兵圍捕',
+            '2. 將手中紅拂塵擲向對方眼睛',
+            '3. 一手握髮、一手映身搖示李靖勿怒，並主動問姓認兄'
+        ],
+        correct: 3, // 答案 3
+        expl: '【課文詳解】紅拂女「熟視其面，一手握髮，一手映身搖示靖，令勿怒」，隨即得知對方亦姓張，順勢結為兄妹，化敵為友！'
+    },
+    {
+        id: 7,
+        chap: '第二章・靈石客棧',
+        q: '【第 7 題】虯髯客從革囊中取出何物與李靖、紅拂女下酒，展現其粗獷豪邁又嫉惡如仇的性格？',
+        options: [
+            '1. 仇人之頭與心肝（切而共食之，曰：此人天下負心者）',
+            '2. 宮廷御賜的西域葡萄美酒',
+            '3. 黃金打造的夜光酒杯'
+        ],
+        correct: 1, // 答案 1
+        expl: '【課文詳解】虯髯客取出一顆人頭與心肝，以匕首切食，說明「此人天下負心者，銜之十年，今始獲之」，盡顯游俠快意恩仇。'
+    },
+    {
+        id: 8,
+        chap: '第三章・汾河古道',
+        q: '【第 8 題】虯髯客向李靖打聽「太原奇人」時，提到有人望氣發現太原上方有何異象？',
+        options: [
+            '1. 漫天飛雪，六月結霜',
+            '2. 有奇氣（龍興之氣），訪之將有真命天子崛起',
+            '3. 彗星襲月，兵戈四起'
+        ],
+        correct: 2, // 答案 2
+        expl: '【課文詳解】虯髯客本欲趁亂世起兵爭天下，因聽聞望氣者言「太原有奇氣」，特與李靖相約於汾陽橋一同前往印證。'
+    },
+    {
+        id: 9,
+        chap: '第三章・汾河古道',
+        q: '【第 9 題】李靖能夠順利引薦虯髯客前往太原見到李世民，是透過哪位故友的協助？',
+        options: [
+            '1. 劉文靜（與李靖素有交情之太原名士）',
+            '2. 房玄齡',
+            '3. 魏徵'
+        ],
+        correct: 1, // 答案 1
+        expl: '【課文詳解】李靖與劉文靜素有舊交，藉著謊稱「有善相者思見郎君（李世民）」，成功安排了太原弈棋的歷史名場面。'
+    },
+    {
+        id: 10,
+        chap: '第四章・太原行館',
+        q: '【第 10 題】李世民出場時「不衫不履，裼裘而來，神氣揚揚」，請問「裼裘」展現了李世民何種形象？',
+        options: [
+            '1. 家境貧寒，買不起正式官服',
+            '2. 披著皮襖、不拘小節卻自帶威儀的天生帝王氣度',
+            '3. 剛從戰場敗退，衣甲殘破不堪'
+        ],
+        correct: 2, // 答案 2
+        expl: '【課文詳解】「不衫不履，裼裘而來，神氣揚揚，貌與常異」極寫李世民自然流露的領袖魅力，令虯髯客一見便心折。'
+    },
+    {
+        id: 11,
+        chap: '第四章・太原行館',
+        q: '【第 11 題】道士（虯髯客之師兄）見到李世民後，推開棋局嘆道：「此局全輸矣！救無路矣！」此話運用了何種修辭？',
+        options: [
+            '1. 誇飾與借代',
+            '2. 排比與層遞',
+            '3. 雙關（表面說圍棋輸局，實指虯髯客爭奪天下之局已全盤輸給李世民）'
+        ],
+        correct: 3, // 答案 3
+        expl: '【課文詳解】此乃全篇最精采的「語意雙關」！道士既指眼前棋局無路可救，更暗指真命天子已出，虯髯客中原逐鹿之夢徹底斷絕。'
+    },
+    {
+        id: 12,
+        chap: '第五章・東都洛陽',
+        q: '【第 12 題】虯髯客決定退出中原，在洛陽將「二十床家財與兵法文簿」全數贈予李靖，其原因為何？',
+        options: [
+            '1. 識天命、順大勢，助李靖輔佐真主開創太平盛世，自己另往海外扶餘國稱王',
+            '2. 被隋朝官兵通緝，來不及搬走家產',
+            '3. 準備出家修道，不再過問塵世之事'
+        ],
+        correct: 1, // 答案 1
+        expl: '【課文詳解】虯髯客「拿得起、放得下」，既成全李世民與李靖成就貞觀盛世，自己亦於十年後率十萬帆入扶餘國自立為王！'
+    }
+];
+
+// --- 國文考點圖鑑資料 ---
+const CODEX_DATA = [
+    {
+        title: '一、作者與文體定位',
+        badge: '文學常識',
+        content: '作者杜光庭（850－933），唐末五代著名道士。本文屬「唐代傳奇小說」中的「豪俠類」代表作，與《崑崙奴傳》、《紅線傳》、《聶隱娘》並稱唐人四大豪俠小說。'
+    },
+    {
+        title: '二、「風塵三俠」人物形象',
+        badge: '核心人物',
+        content: '「風塵」兼指亂世與非凡風采。紅拂女（張出塵）慧眼果敢、有膽有識；李靖（李藥師）沉穩大度、文武兼資；虯髯客（張仲堅）豪邁慷慨、拿得起放得下。'
+    },
+    {
+        title: '三、襯托法與結構美學',
+        badge: '寫作手法',
+        content: '全篇以楊素的「尸居餘氣、驕貴無禮」反襯李靖的才華與紅拂女的慧眼；再以虯髯客的「神威豪氣、富可敵國」作為烘雲托月之筆，層層襯托出真命天子李世民的「龍鳳之姿」。'
+    },
+    {
+        title: '四、靈石客棧：戲劇張力最高潮',
+        badge: '情節賞析',
+        content: '透過「梳頭（長髮委地）」、「刷馬（怒甚未決）」、「臥看（虎目虬髯）」、「映身搖手（智化解危）」四個連續鏡頭，不著一字評論，卻將三人性格刻劃得入木三分。'
+    },
+    {
+        title: '五、太原弈棋：精妙的雙關修辭',
+        badge: '修辭亮點',
+        content: '道士見李世民後嘆曰：「此局全輸矣！於此失卻局，奇哉！救無路矣！復奚言！」表面講圍棋死局，實則宣告虯髯客逐鹿中原的天下大局已輸給真龍天子。'
+    },
+    {
+        title: '六、主題思想：天命論與英雄出路',
+        badge: '主題深意',
+        content: '小說雖帶有「真命天子不可妄求」的時代色彩，但虯髯客並未因此消沉，反而傾盡家財助李靖建功，自己則「入扶餘國自立為王」，展現開闊昂揚的生命格局。'
+    }
+];
+
+// --- 遊戲難度設定 ---
+const DIFFICULTIES = [
+    { name: '標準挑戰', dmgMult: 1.0, hpMult: 1.0 },
+    { name: '修羅煉獄', dmgMult: 1.45, hpMult: 1.45 },
+    { name: '報告演示(輕鬆)', dmgMult: 0.45, hpMult: 0.7 }
+];
+let diffIndex = 0;
+
+// --- 角色與強化狀態 ---
+const WEAPON_TIERS = ['青銅短匕', '精鐵斬馬刀', '松紋七星古劍', '崑崙赤龍巨闕', '太阿天子聖劍'];
+const ARMOR_TIERS = ['粗布勁裝', '玄鐵鎖子甲', '紫金護心寶甲', '麒麟吞雲戰袍', '扶餘國主金甲'];
+
+const player = {
+    x: 150,
+    y: 360,
+    r: 22,
+    facing: 1, // 1: 右, -1: 左
+    hp: 160,
+    maxHp: 160,
+    sp: 100,
+    maxSp: 100,
+    coins: 350,
+    potions: 2, // 100錢補血藥水
+    weaponLv: 1,
+    armorLv: 1,
+    skillLv: 1,
+    speed: 4.1,
+    walkCycle: 0,
+    isMoving: false,
+    // 攻擊與連段
+    atkTimer: 0,
+    comboStep: 0,
+    comboResetTimer: 0,
+    // 閃避
+    dashTimer: 0,
+    dashCooldown: 0,
+    dashVx: 0,
+    dashVy: 0,
+    invulnTimer: 0,
+    // 統計
+    qaSolved: new Set(),
+    thunderCount: 0,
+    kills: 0,
+
+    get atkPower() {
+        return 24 + (this.weaponLv - 1) * 14 + (this.skillLv - 1) * 6;
+    },
+    get defenseRate() {
+        return Math.min(0.55, (this.armorLv - 1) * 0.12);
+    }
+};
+
+// --- 遊戲章節與動態物件容器 ---
+let currentChapter = 0;
+let gameState = 'PLAY'; // PLAY, DIALOGUE
+let npcs = [];
+let allies = [];
+let enemies = [];
+let chests = [];
+let projectiles = [];
+let particles = [];
+let shockwaves = [];
+let floatTexts = [];
+let portal = null;
+
+// 畫面震動與閃光特效
+let screenShake = 0;
+let flashColor = null;
+let flashAlpha = 0;
+let lightningBolt = null;
+
+// 鍵盤與滑鼠狀態
+const keys = {};
+let mouseX = 0, mouseY = 0;
+
+// --- 建立並載入六大章節 ---
+const CHAPTER_TITLES = [
+    '序章：終南山・俠隱備戰大廳（安全區）',
+    '第一章：西京長安・紅拂夜奔',
+    '第二章：靈石客棧・風塵結義',
+    '第三章：汾河古道・望氣尋龍',
+    '第四章：太原行館・弈棋見真龍',
+    '第五章：東都洛陽・傾囊相授（終章）'
+];
+
+function jumpToChapter(chapIdx) {
+    closeDialogue();
+    loadChapter(chapIdx);
+}
+
+function loadChapter(chapIdx) {
+    currentChapter = chapIdx;
+    npcs = [];
+    allies = [];
+    enemies = [];
+    chests = [];
+    projectiles = [];
+    particles = [];
+    shockwaves = [];
+    portal = null;
+
+    // 更新導覽列高亮
+    for (let i = 0; i <= 5; i++) {
+        const btn = document.getElementById(`chap-btn-${i}`);
+        if (btn) {
+            if (i === chapIdx) btn.classList.add('btn-chap-active');
+            else btn.classList.remove('btn-chap-active');
+        }
+    }
+
+    player.x = 110;
+    player.y = 365;
+    player.facing = 1;
+
+    const hpScale = DIFFICULTIES[diffIndex].hpMult;
+
+    if (chapIdx === 0) {
+        // 序章：終南山・俠隱備戰大廳（零敵人安全區）
+        npcs.push({
+            x: 230, y: 270, role: 'MERCHANT', name: '🧪 西域藥商・胡萬金',
+            title: '【100錢補血藥水】', isMerchant: true
+        });
+        npcs.push({
+            x: 410, y: 265, role: 'DAOIST', name: '📜 說書人・杜光庭',
+            title: '【原作導覽＆考題 1】',
+            dialogue: [
+                { speaker: '說書人・杜光庭', role: 'DAOIST', text: '「大隋大業年間，煬帝巡幸江都，天下盜賊蜂起。少俠如今化身為豪俠虯髯客，即將踏入這場決定天下歸屬的風雲際會！」' },
+                { speaker: '說書人・杜光庭', role: 'DAOIST', text: '「大廳中央設有不會反擊的【機關木人樁】，你可以盡情試用 J 連斬、K 赤龍斬、U 裂地破與 I 合擊大招；左側有胡萬金販售 100 錢回春藥水。」' },
+                { type: 'QA', qaId: 1 }
+            ]
+        });
+        chests.push({ x: 320, y: 445, opened: false, name: '🎁 新手備戰百寶箱', coins: 200, potions: 1 });
+
+        // 不會反擊的機關木人樁
+        enemies.push(createEnemy(640, 360, '機關木人樁（練功用）', 'DUMMY', 99999, 0, false));
+
+        portal = { x: 935, y: 310, w: 65, h: 120, target: 1, label: '下山入長安 ➔' };
+
+    } else if (chapIdx === 1) {
+        // 第一章：西京長安・紅拂夜奔 (左側為安全區)
+        npcs.push({
+            x: 165, y: 265, role: 'MERCHANT', name: '🧪 西域藥商・胡萬金',
+            title: '【100錢補血藥水】', isMerchant: true
+        });
+        npcs.push({
+            x: 295, y: 275, role: 'LIJING', name: '⚔️ 衛公・李靖',
+            title: '【長安逆旅・考題 2】',
+            dialogue: [
+                { speaker: '李靖（李藥師）', role: 'LIJING', text: '「某今日以布衣之身前往司空楊素府第獻策，豈料楊素踞床而見，毫無匡扶天下之心！」' },
+                { speaker: '李靖（李藥師）', role: 'LIJING', text: '「然而楊素身後有一執紅拂之佳人，竟對某注目良久…不知今夜會有何變故？」' },
+                { type: 'QA', qaId: 2 }
+            ]
+        });
+        npcs.push({
+            x: 425, y: 280, role: 'HONGFU', name: '🌺 紅拂女・張出塵',
+            title: '【紫衣夜奔・考題 3&4】',
+            dialogue: [
+                { speaker: '紅拂女（張出塵）', role: 'HONGFU', text: '「妾乃楊司空家妓張氏，排行第一。今日見郎君氣宇軒昂，深知楊素屍居餘氣，不足畏也！」' },
+                { type: 'QA', qaId: 3 },
+                { speaker: '紅拂女（張出塵）', role: 'HONGFU', text: '「絲蘿非獨生，願託喬木，故趁夜色來奔！但宇文府的护院追兵已至巷口，還請壯士助我二人突圍！」' },
+                { type: 'QA', qaId: 4 }
+            ]
+        });
+        chests.push({ x: 250, y: 455, opened: false, name: '📦 楊府密藏金箱', coins: 160, potions: 1 });
+
+        // 右半部敵軍與守關 Boss
+        enemies.push(createEnemy(620, 320, '宇文府惡霸', 'THUG', Math.round(160 * hpScale), 16, false));
+        enemies.push(createEnemy(680, 420, '宇文府惡霸', 'THUG', Math.round(160 * hpScale), 16, false));
+        enemies.push(createEnemy(820, 365, '宇文府護院總管・雷霸', 'BOSS_1', Math.round(680 * hpScale), 26, true));
+
+        portal = { x: 940, y: 310, w: 65, h: 120, target: 2, label: '前往靈石客棧 ➔' };
+
+    } else if (chapIdx === 2) {
+        // 第二章：靈石客棧・風塵結義
+        npcs.push({
+            x: 165, y: 265, role: 'MERCHANT', name: '🧪 西域藥商・胡萬金',
+            title: '【100錢補血藥水】', isMerchant: true
+        });
+        npcs.push({
+            x: 340, y: 285, role: 'LIJING', name: '🐎 刷馬中的李靖',
+            title: '【怒甚未決・考題 5】',
+            dialogue: [
+                { speaker: '李靖（李藥師）', role: 'LIJING', text: '「（緊握馬刷，額角青筋微跳）此赤髯漢子竟大剌剌投革囊於爐前，取枕臥看內人梳頭！某當真怒極，但未知其深淺，且看張氏如何應對…」' },
+                { type: 'QA', qaId: 5 }
+            ]
+        });
+        npcs.push({
+            x: 475, y: 270, role: 'HONGFU', name: '🪮 梳頭的紅拂女',
+            title: '【認兄結義・考題 6&7】',
+            dialogue: [
+                { speaker: '紅拂女（張出塵）', role: 'HONGFU', text: '「（一手握長髮，一手在背後輕搖示意李靖息怒）妾觀兄長龍虎之姿，亦姓張排行第三，今日得遇三兄，實乃天賜良緣！」' },
+                { type: 'QA', qaId: 6 },
+                { speaker: '虯髯客（張仲堅）', role: 'PLAYER', text: '「哈哈哈！一妹果真女中豪傑！李郎亦非庸碌之輩！來，某革囊中有下酒奇物，與二位共飲結拜！」' },
+                { type: 'QA', qaId: 7 }
+            ]
+        });
+        chests.push({ x: 520, y: 455, opened: false, name: '🥩 客棧行囊寶箱', coins: 180, potions: 1 });
+
+        // 助戰夥伴紅拂女
+        allies.push({ x: 260, y: 390, role: 'HONGFU', name: '紅拂女(助戰)', atkTimer: 0 });
+
+        // 追兵與刺客
+        enemies.push(createEnemy(690, 315, '大隋驍果鐵衛', 'GUARD', Math.round(210 * hpScale), 20, false));
+        enemies.push(createEnemy(740, 425, '隋軍神臂弩手', 'ARCHER', Math.round(170 * hpScale), 22, false));
+        enemies.push(createEnemy(835, 360, '大隋驍果鐵衛', 'GUARD', Math.round(210 * hpScale), 20, false));
+
+        portal = { x: 940, y: 310, w: 65, h: 120, target: 3, label: '踏上汾河古道 ➔' };
+
+    } else if (chapIdx === 3) {
+        // 第三章：汾河古道・望氣尋龍
+        npcs.push({
+            x: 165, y: 265, role: 'MERCHANT', name: '🧪 西域藥商・胡萬金',
+            title: '【100錢補血藥水】', isMerchant: true
+        });
+        npcs.push({
+            x: 330, y: 265, role: 'STELE', name: '🪨 汾陽橋古石碑',
+            title: '【望氣尋龍・考題 8&9】',
+            dialogue: [
+                { speaker: '汾陽橋古石碑', role: 'DAOIST', text: '「碑文記載：太原之地，紫氣沖霄。虯髯客與李靖夫婦相約於汾陽橋會合，欲往太原一探真龍虛實。」' },
+                { type: 'QA', qaId: 8 },
+                { speaker: '李靖（李藥師）', role: 'LIJING', text: '「三兄放心，某在太原有一故友，可為我等引見唐公之子李世民！」' },
+                { type: 'QA', qaId: 9 }
+            ]
+        });
+        chests.push({ x: 420, y: 455, opened: false, name: '📦 汾河軍餉寶箱', coins: 220, potions: 1 });
+
+        allies.push({ x: 240, y: 400, role: 'LIJING', name: '李靖(助戰)', atkTimer: 0 });
+
+        enemies.push(createEnemy(590, 310, '大隋驍果鐵衛', 'GUARD', Math.round(230 * hpScale), 22, false));
+        enemies.push(createEnemy(650, 435, '隋軍神臂弩手', 'ARCHER', Math.round(190 * hpScale), 24, false));
+        enemies.push(createEnemy(815, 365, '虎賁中郎將・麻叔謀', 'BOSS_2', Math.round(820 * hpScale), 30, true));
+
+        portal = { x: 940, y: 310, w: 65, h: 120, target: 4, label: '進入太原行館 ➔' };
+
+    } else if (chapIdx === 4) {
+        // 第四章：太原行館・弈棋見真龍（全書最高潮）
+        npcs.push({
+            x: 155, y: 265, role: 'MERCHANT', name: '🧪 西域藥商・胡萬金',
+            title: '【100錢補血藥水】', isMerchant: true
+        });
+        npcs.push({
+            x: 315, y: 270, role: 'LISHIMIN', name: '👑 太原公子・李世民',
+            title: '【真龍天子・考題 10】',
+            dialogue: [
+                { speaker: '太原公子・李世民', role: 'LISHIMIN', text: '「（不衫不履，裼裘而來，神氣揚揚，雙目似電）久聞劉兄言有奇士來訪，世民特來相見，諸位請坐！」' },
+                { speaker: '虯髯客（張仲堅）', role: 'PLAYER', text: '「（暗自心驚，默然揖坐）此子年方二十，竟有如此威嚴龍鳳之姿…某今日方知天命所歸！」' },
+                { type: 'QA', qaId: 10 }
+            ]
+        });
+        npcs.push({
+            x: 455, y: 270, role: 'DAOIST', name: '☯️ 峨嵋道士（師兄）',
+            title: '【此局全輸矣・考題 11】',
+            dialogue: [
+                { speaker: '峨嵋道士', role: 'DAOIST', text: '「（望見李世民神采，慘然推開棋子）此局全輸矣！於此失卻局，奇哉！救無路矣！復奚言！」' },
+                { type: 'QA', qaId: 11 },
+                { speaker: '虯髯客（張仲堅）', role: 'PLAYER', text: '「李郎，此真天子也！十年間即當混一九州。門外大隋驍果衛大統領率軍欲對公子不利，待某先替太原掃除此獠！」' }
+            ]
+        });
+        chests.push({ x: 380, y: 455, opened: false, name: '♟️ 太原紫金寶箱', coins: 260, potions: 2 });
+
+        allies.push({ x: 230, y: 390, role: 'HONGFU', name: '紅拂女(助戰)', atkTimer: 0 });
+        allies.push({ x: 270, y: 430, role: 'LIJING', name: '李靖(助戰)', atkTimer: 0 });
+
+        enemies.push(createEnemy(640, 310, '隋軍神臂弩手', 'ARCHER', Math.round(210 * hpScale), 24, false));
+        enemies.push(createEnemy(810, 365, '大隋驍果衛大統領・宇文成都', 'BOSS_3', Math.round(1050 * hpScale), 35, true));
+
+        portal = { x: 940, y: 310, w: 65, h: 120, target: 5, label: '前往洛陽贈財 ➔' };
+
+    } else if (chapIdx === 5) {
+        // 第五章：東都洛陽・傾囊相授（大結局）
+        npcs.push({
+            x: 160, y: 265, role: 'MERCHANT', name: '🧪 西域藥商・胡萬金',
+            title: '【100錢補血藥水】', isMerchant: true
+        });
+        npcs.push({
+            x: 350, y: 275, role: 'LIJING', name: '📜 李靖與紅拂女',
+            title: '【傾囊相授・考題 12】',
+            dialogue: [
+                { speaker: '虯髯客（張仲堅）', role: 'PLAYER', text: '「李郎、一妹！此二十床金銀奇珍與珪璋兵書，乃某半生積蓄。今真主已出，某留之無用，全數贈予二位，助李郎輔佐真龍開創太平盛世！」' },
+                { speaker: '虯髯客（張仲堅）', role: 'PLAYER', text: '「今世界終了，某將往東南海外尋扶餘國自立為王。若十餘年後聞東南有異事，即某得志之秋也，二位當瀝酒東南相賀！」' },
+                { type: 'QA', qaId: 12 },
+                { speaker: '紅拂女 ＆ 李靖', role: 'HONGFU', text: '「三兄大恩大德，沒齒難忘！只要再破除前方最後的【天罡八陣圖劍靈】試煉，便可正式揚帆出海！」' }
+            ]
+        });
+        chests.push({ x: 470, y: 455, opened: false, name: '💎 洛陽二十床奇珍箱', coins: 500, potions: 2 });
+
+        allies.push({ x: 250, y: 390, role: 'HONGFU', name: '紅拂女(助戰)', atkTimer: 0 });
+        allies.push({ x: 290, y: 430, role: 'LIJING', name: '李靖(助戰)', atkTimer: 0 });
+
+        enemies.push(createEnemy(790, 365, '洛陽終極試煉・天罡八陣劍靈', 'BOSS_FINAL', Math.round(1200 * hpScale), 38, true));
+
+        portal = { x: 940, y: 310, w: 65, h: 120, target: 99, label: '🏆 完成傳奇結算' };
+    }
+
+    updateUIHeader();
+}
+
+// --- 建立敵人與守關 Boss 實例 ---
+function createEnemy(x, y, name, type, maxHp, atk, isBoss) {
+    return {
+        x, y,
+        r: isBoss ? 34 : 22,
+        name,
+        type, // DUMMY, THUG, GUARD, ARCHER, BOSS_1, BOSS_2, BOSS_3, BOSS_FINAL
+        hp: maxHp,
+        maxHp,
+        atk,
+        isBoss,
+        facing: -1,
+        walkCycle: Math.random() * 10,
+        hitFlash: 0,
+        // Boss 專屬護體罡氣與二階段狂暴狀態
+        poise: isBoss ? 200 : 0,
+        maxPoise: isBoss ? 200 : 0,
+        stunnedTimer: 0, // 破防虛弱計時
+        enraged: false,  // 55% 血量二階段狂暴
+        atkCooldown: 70 + Math.floor(Math.random() * 40),
+        telegraph: null  // Boss 紅區預警殺招物件
+    };
+}
+
+// --- 繪製六大章節高精細古風場景 ---
+function drawBackgroundScene(chap) {
+    // 若玩家上傳了自訂地圖背景，優先繪製自訂地圖
+    if (customImages.maps[chap]) {
+        ctx.drawImage(customImages.maps[chap], 0, 0, W, H);
+        return;
+    }
+
+    // 1. 遠景天空與建築牆面 (Y: 0 ~ 215)
+    let skyGrad = ctx.createLinearGradient(0, 0, 0, 215);
+    if (chap === 0) {
+        skyGrad.addColorStop(0, '#0f241d');
+        skyGrad.addColorStop(1, '#1c382c');
+    } else if (chap === 1) {
+        skyGrad.addColorStop(0, '#0d1326');
+        skyGrad.addColorStop(1, '#261830');
+    } else if (chap === 2) {
+        skyGrad.addColorStop(0, '#2b180c');
+        skyGrad.addColorStop(1, '#472814');
+    } else if (chap === 3) {
+        skyGrad.addColorStop(0, '#0c2336');
+        skyGrad.addColorStop(1, '#1d445c');
+    } else if (chap === 4) {
+        skyGrad.addColorStop(0, '#2a1215');
+        skyGrad.addColorStop(1, '#52221a');
+    } else {
+        skyGrad.addColorStop(0, '#361c08');
+        skyGrad.addColorStop(1, '#693610');
+    }
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, W, 215);
+
+    // 繪製遠山或宮殿剪影
+    ctx.fillStyle = 'rgba(10, 8, 6, 0.45)';
+    ctx.beginPath();
+    ctx.moveTo(0, 215);
+    for (let x = 0; x <= W; x += 64) {
+        let peak = 135 + Math.sin(x * 0.012 + chap) * 35 + Math.cos(x * 0.03) * 18;
+        ctx.lineTo(x, peak);
+    }
+    ctx.lineTo(W, 215);
+    ctx.closePath();
+    ctx.fill();
+
+    // 古風飛簷廊柱與建築細節
+    ctx.fillStyle = '#29170c';
+    ctx.fillRect(0, 185, W, 32);
+    ctx.strokeStyle = '#b45309';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, 215);
+    ctx.lineTo(W, 215);
+    ctx.stroke();
+
+    // 廊柱與紅燈籠
+    for (let x = 90; x < W; x += 180) {
+        // 朱紅廊柱
+        ctx.fillStyle = '#5c1912';
+        ctx.fillRect(x - 10, 75, 20, 140);
+        ctx.fillStyle = '#d97706';
+        ctx.fillRect(x - 12, 75, 24, 8);
+        ctx.fillRect(x - 12, 207, 24, 8);
+
+        // 飛簷瓦當
+        ctx.fillStyle = '#1c1917';
+        ctx.beginPath();
+        ctx.moveTo(x - 85, 78);
+        ctx.quadraticCurveTo(x, 55, x + 85, 78);
+        ctx.lineTo(x + 70, 62);
+        ctx.quadraticCurveTo(x, 42, x - 70, 62);
+        ctx.closePath();
+        ctx.fill();
+
+        // 搖曳宮燈與暖光暈
+        let swing = Math.sin(globalTick * 0.04 + x) * 4;
+        let lx = x + 48 + swing;
+        let ly = 105;
+        let glow = ctx.createRadialGradient(lx, ly, 4, lx, ly, 48);
+        glow.addColorStop(0, 'rgba(251, 191, 36, 0.55)');
+        glow.addColorStop(1, 'rgba(251, 191, 36, 0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(lx, ly, 48, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x + 48, 78);
+        ctx.lineTo(lx, ly - 12);
+        ctx.stroke();
+
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath();
+        ctx.ellipse(lx, ly, 12, 15, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#fde047';
+        ctx.stroke();
+    }
+
+    // 2. 地面古青磚與紋理 (Y: 215 ~ H)
+    let floorGrad = ctx.createLinearGradient(0, 215, 0, H);
+    if (chap === 0) {
+        floorGrad.addColorStop(0, '#26231f');
+        floorGrad.addColorStop(1, '#171412');
+    } else if (chap === 3) {
+        floorGrad.addColorStop(0, '#2b2923');
+        floorGrad.addColorStop(1, '#1a1814');
+    } else {
+        floorGrad.addColorStop(0, '#292019');
+        floorGrad.addColorStop(1, '#17110d');
+    }
+    ctx.fillStyle = floorGrad;
+    ctx.fillRect(0, 215, W, H - 215);
+
+    // 繪製青石板磚縫
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+    ctx.lineWidth = 1;
+    for (let y = 240; y < H; y += 38) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+        ctx.stroke();
+        let offset = ((y / 38) % 2) * 45;
+        for (let x = offset; x < W; x += 90) {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x, y + 38);
+            ctx.stroke();
+        }
+    }
+
+    // 章節專屬場景陳設細節
+    if (chap === 0) {
+        // 序章備戰大廳：演武太極地磚陣
+        ctx.save();
+        ctx.translate(640, 370);
+        ctx.strokeStyle = 'rgba(217, 119, 6, 0.28)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(0, 0, 85, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, 0, 68, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+    } else if (chap === 2) {
+        // 第二章靈石客棧：火爐與燉肉鍋
+        ctx.save();
+        ctx.translate(415, 345);
+        ctx.fillStyle = '#44403c';
+        ctx.beginPath();
+        ctx.arc(0, 0, 22, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ea580c';
+        ctx.beginPath();
+        ctx.arc(0, -2, 14 + Math.sin(globalTick * 0.2) * 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fde047';
+        ctx.font = 'bold 11px serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🔥 客棧爐火', 0, 34);
+        ctx.restore();
+    } else if (chap === 3) {
+        // 第三章汾河古道：河岸波光與垂柳
+        ctx.fillStyle = 'rgba(14, 116, 144, 0.35)';
+        ctx.fillRect(0, 175, W, 42);
+        for (let i = 0; i < 14; i++) {
+            let wx = (i * 85 + globalTick * 0.8) % W;
+            ctx.strokeStyle = 'rgba(125, 211, 252, 0.4)';
+            ctx.beginPath();
+            ctx.moveTo(wx, 195);
+            ctx.lineTo(wx + 32, 195);
+            ctx.stroke();
+        }
+    } else if (chap === 4) {
+        // 第四章太原行館：漢白玉棋桌
+        ctx.save();
+        ctx.translate(385, 315);
+        ctx.fillStyle = '#d6d3d1';
+        ctx.strokeStyle = '#78350f';
+        ctx.lineWidth = 3;
+        ctx.fillRect(-32, -20, 64, 40);
+        ctx.strokeRect(-32, -20, 64, 40);
+        // 棋盤格與黑白棋子
+        ctx.fillStyle = '#1c1917';
+        ctx.beginPath(); ctx.arc(-10, -5, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(8, 4, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fafaf9';
+        ctx.beginPath(); ctx.arc(4, -6, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(-6, 7, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fde047';
+        ctx.font = 'bold 11px serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('♟️ 太原生死棋局', 0, 34);
+        ctx.restore();
+    }
+
+    // 繪製右側傳送門
+    if (portal) {
+        ctx.save();
+        const px = portal.x + portal.w / 2;
+        const py = portal.y + portal.h / 2;
+        let pGlow = ctx.createRadialGradient(px, py, 8, px, py, 65);
+        pGlow.addColorStop(0, 'rgba(250, 204, 21, 0.75)');
+        pGlow.addColorStop(0.5, 'rgba(217, 119, 6, 0.35)');
+        pGlow.addColorStop(1, 'rgba(217, 119, 6, 0)');
+        ctx.fillStyle = pGlow;
+        ctx.beginPath();
+        ctx.arc(px, py, 65, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#fef08a';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.ellipse(px, py, 24, 52, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#fef08a';
+        ctx.font = 'bold 13px "Noto Serif TC", serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(portal.label, px - 10, portal.y - 10);
+        ctx.restore();
+    }
+}
+
+// --- 精細古風多層次角色建模繪圖核心 (支援地圖角色 & 對話半身立繪共用) ---
+function drawAncientCharacter(targetCtx, x, y, role, facing = 1, walkCycle = 0, isAttacking = false, atkProgress = 0, scale = 1, isPortrait = false) {
+    // 檢查是否有玩家自訂上傳的圖片
+    let customKey = role;
+    if (role === 'THUG' || role === 'GUARD' || role === 'ARCHER') customKey = 'ENEMY';
+    if (role.startsWith('BOSS')) customKey = 'BOSS';
+
+    if (customImages.chars[customKey]) {
+        targetCtx.save();
+        targetCtx.translate(x, y);
+        targetCtx.scale(facing * scale, scale);
+        const img = customImages.chars[customKey];
+        targetCtx.drawImage(img, -36, -68, 72, 82);
+        targetCtx.restore();
+        return;
+    }
+
+    targetCtx.save();
+    targetCtx.translate(x, y);
+    targetCtx.scale(facing * scale, scale);
+
+    // 呼吸與步伐動態偏移
+    const breath = Math.sin(globalTick * 0.08 + x) * 1.4;
+    const legSwing = Math.sin(walkCycle) * 7;
+
+    // 地面陰影 (非立繪時繪製)
+    if (!isPortrait) {
+        targetCtx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+        targetCtx.beginPath();
+        targetCtx.ellipse(0, 12, 20, 7, 0, 0, Math.PI * 2);
+        targetCtx.fill();
+    }
+
+    // 若為木人樁或石碑，使用專用造型
+    if (role === 'DUMMY') {
+        // 機關木人樁
+        targetCtx.fillStyle = '#78350f';
+        targetCtx.fillRect(-16, -2, 32, 12);
+        targetCtx.fillStyle = '#b45309';
+        targetCtx.fillRect(-10, -48, 20, 48);
+        // 橫臂
+        targetCtx.fillStyle = '#92400e';
+        targetCtx.fillRect(-26, -34, 52, 7);
+        targetCtx.fillRect(-6, -22, 26, 6);
+        // 頭部與靶心
+        targetCtx.fillStyle = '#d97706';
+        targetCtx.beginPath();
+        targetCtx.arc(0, -56, 13, 0, Math.PI * 2);
+        targetCtx.fill();
+        targetCtx.strokeStyle = '#dc2626';
+        targetCtx.lineWidth = 2;
+        targetCtx.beginPath();
+        targetCtx.arc(0, -30, 6, 0, Math.PI * 2);
+        targetCtx.stroke();
+        targetCtx.restore();
+        return;
+    }
+
+    if (role === 'STELE') {
+        // 汾陽橋古石碑
+        targetCtx.fillStyle = '#57534e';
+        targetCtx.fillRect(-24, -4, 48, 14);
+        targetCtx.fillStyle = '#78716c';
+        targetCtx.beginPath();
+        targetCtx.roundRect(-18, -62, 36, 60, [14, 14, 0, 0]);
+        targetCtx.fill();
+        targetCtx.strokeStyle = '#fbbf24';
+        targetCtx.lineWidth = 1.5;
+        targetCtx.strokeRect(-12, -52, 24, 42);
+        targetCtx.fillStyle = '#fef08a';
+        targetCtx.font = 'bold 10px serif';
+        targetCtx.textAlign = 'center';
+        targetCtx.fillText('太原', 0, -34);
+        targetCtx.fillText('奇氣', 0, -20);
+        targetCtx.restore();
+        return;
+    }
+
+    // 角色配色方案設定
+    let robeColor = '#7f1d1d';
+    let innerColor = '#f59e0b';
+    let capeColor = '#b91c1c';
+    let beltColor = '#fbbf24';
+    let hairColor = '#1c1917';
+
+    if (role === 'PLAYER') {
+        robeColor = '#581c87'; // 紫紅勁裝
+        innerColor = '#dc2626';
+        capeColor = '#b91c1c'; // 赤紅大氅
+        beltColor = '#fbbf24';
+    } else if (role === 'HONGFU') {
+        robeColor = '#6b21a8'; // 紫衣勁裝
+        innerColor = '#f43f5e';
+        capeColor = '#e11d48'; // 緋紅披帛
+        beltColor = '#fde047';
+    } else if (role === 'LIJING') {
+        robeColor = '#1e3a8a'; // 儒將深青袍
+        innerColor = '#38bdf8';
+        capeColor = '#1d4ed8';
+        beltColor = '#e2e8f0';
+    } else if (role === 'LISHIMIN') {
+        robeColor = '#b45309'; // 金龍皇袍
+        innerColor = '#fef08a';
+        capeColor = '#78350f'; // 裼裘狐皮大氅
+        beltColor = '#fde047';
+    } else if (role === 'MERCHANT') {
+        robeColor = '#065f46'; // 西域綠錦袍
+        innerColor = '#fbbf24';
+        capeColor = '#047857';
+        beltColor = '#f59e0b';
+    } else if (role === 'DAOIST') {
+        robeColor = '#334155'; // 鶴氅道袍
+        innerColor = '#e2e8f0';
+        capeColor = '#1e293b';
+        beltColor = '#38bdf8';
+    } else if (role === 'THUG' || role === 'GUARD' || role === 'ARCHER') {
+        robeColor = '#3f3f46';
+        innerColor = '#991b1b';
+        capeColor = '#450a0a';
+        beltColor = '#a1a1aa';
+    } else if (role.startsWith('BOSS')) {
+        robeColor = '#450a0a';
+        innerColor = '#f59e0b';
+        capeColor = '#7f1d1d';
+        beltColor = '#fde047';
+    }
+
+    // 1. 繪製隨風飄動的披風 / 背部配件
+    let capeWave = Math.sin(globalTick * 0.1 + x * 0.05) * 6;
+    targetCtx.fillStyle = capeColor;
+    targetCtx.beginPath();
+    targetCtx.moveTo(-8, -38 + breath);
+    targetCtx.quadraticCurveTo(-24 - capeWave, -15, -22 - capeWave, 6);
+    targetCtx.lineTo(-4, 6);
+    targetCtx.closePath();
+    targetCtx.fill();
+
+    // 若為藥商，繪製背上的西域藥簍與葫蘆
+    if (role === 'MERCHANT') {
+        targetCtx.fillStyle = '#92400e';
+        targetCtx.strokeStyle = '#fbbf24';
+        targetCtx.lineWidth = 1.5;
+        targetCtx.fillRect(-22, -42 + breath, 14, 26);
+        targetCtx.strokeRect(-22, -42 + breath, 14, 26);
+        // 翡翠藥葫蘆
+        targetCtx.fillStyle = '#10b981';
+        targetCtx.beginPath();
+        targetCtx.arc(-16, -46 + breath, 6, 0, Math.PI * 2);
+        targetCtx.fill();
+    }
+
+    // 若為李世民，繪製背後淡淡的紫金真龍瑞氣
+    if (role === 'LISHIMIN') {
+        targetCtx.save();
+        targetCtx.strokeStyle = 'rgba(250, 204, 21, 0.55)';
+        targetCtx.lineWidth = 2.5;
+        targetCtx.beginPath();
+        targetCtx.arc(0, -28 + breath, 28 + Math.sin(globalTick * 0.1) * 3, 0, Math.PI * 2);
+        targetCtx.stroke();
+        targetCtx.restore();
+    }
+
+    // 2. 雙腿與戰靴 (非立繪時繪製)
+    if (!isPortrait) {
+        targetCtx.fillStyle = '#1c1917';
+        targetCtx.fillRect(-9 + legSwing * 0.5, -4, 7, 14);
+        targetCtx.fillRect(2 - legSwing * 0.5, -4, 7, 14);
+    }
+
+    // 3. 軀幹與交領漢服 / 甲冑
+    targetCtx.fillStyle = robeColor;
+    targetCtx.beginPath();
+    targetCtx.roundRect(-13, -38 + breath, 26, 36, 5);
+    targetCtx.fill();
+
+    // 漢服交領 (Y字形衣襟)
+    targetCtx.strokeStyle = innerColor;
+    targetCtx.lineWidth = 3;
+    targetCtx.beginPath();
+    targetCtx.moveTo(-8, -37 + breath);
+    targetCtx.lineTo(0, -24 + breath);
+    targetCtx.lineTo(8, -37 + breath);
+    targetCtx.moveTo(0, -24 + breath);
+    targetCtx.lineTo(0, -4 + breath);
+    targetCtx.stroke();
+
+    // 腰封與古玉佩
+    targetCtx.fillStyle = beltColor;
+    targetCtx.fillRect(-13, -18 + breath, 26, 5);
+    targetCtx.fillStyle = '#34d399'; // 翠玉腰佩
+    targetCtx.beginPath();
+    targetCtx.arc(4, -12 + breath, 3.2, 0, Math.PI * 2);
+    targetCtx.fill();
+
+    // 武將與 Boss 肩甲吞獸
+    if (role === 'LIJING' || role === 'GUARD' || role.startsWith('BOSS')) {
+        targetCtx.fillStyle = '#d97706';
+        targetCtx.beginPath();
+        targetCtx.arc(-13, -33 + breath, 6, 0, Math.PI * 2);
+        targetCtx.arc(13, -33 + breath, 6, 0, Math.PI * 2);
+        targetCtx.fill();
+    }
+
+    // 4. 頭部、五官眼神與專屬特徵
+    const headY = -50 + breath;
+    targetCtx.fillStyle = '#fed7aa'; // 膚色
+    targetCtx.beginPath();
+    targetCtx.arc(0, headY, 11.5, 0, Math.PI * 2);
+    targetCtx.fill();
+
+    // 眼神與眉毛
+    targetCtx.fillStyle = '#1c1917';
+    targetCtx.beginPath();
+    targetCtx.arc(4.5, headY - 1, 1.7, 0, Math.PI * 2);
+    targetCtx.fill();
+
+    // 依角色繪製專屬髮髻、鬍鬚與頭冠
+    if (role === 'PLAYER') {
+        // 虯髯客：濃密捲曲的赤紅絡腮鬍（虯髯）+ 金冠黑髮
+        targetCtx.fillStyle = '#1c1917';
+        targetCtx.beginPath();
+        targetCtx.arc(-2, headY - 4, 11.5, Math.PI * 0.85, Math.PI * 2.15);
+        targetCtx.fill();
+        // 金冠
+        targetCtx.fillStyle = '#fbbf24';
+        targetCtx.fillRect(-5, headY - 17, 10, 6);
+        // 劍眉
+        targetCtx.strokeStyle = '#991b1b';
+        targetCtx.lineWidth = 2;
+        targetCtx.beginPath();
+        targetCtx.moveTo(1, headY - 4.5);
+        targetCtx.lineTo(8, headY - 6);
+        targetCtx.stroke();
+        // 招牌立體赤紅虯髯
+        targetCtx.fillStyle = '#dc2626';
+        for (let b = -6; b <= 8; b += 3.5) {
+            targetCtx.beginPath();
+            targetCtx.arc(b, headY + 7 + Math.abs(b) * 0.2, 4.2, 0, Math.PI * 2);
+            targetCtx.fill();
+        }
+    } else if (role === 'HONGFU') {
+        // 紅拂女：高聳雲髻 + 金步搖 + 朱唇翠眉
+        targetCtx.fillStyle = '#1c1917';
+        targetCtx.beginPath();
+        targetCtx.arc(-2, headY - 3, 12, Math.PI * 0.75, Math.PI * 2.2);
+        targetCtx.arc(-4, headY - 15, 7, 0, Math.PI * 2); // 高雲髻
+        targetCtx.fill();
+        // 金步搖髮簪與紅珠
+        targetCtx.fillStyle = '#fde047';
+        targetCtx.fillRect(-8, headY - 17, 12, 3);
+        targetCtx.fillStyle = '#f43f5e';
+        targetCtx.beginPath();
+        targetCtx.arc(5, headY - 15, 2.5, 0, Math.PI * 2);
+        targetCtx.fill();
+        // 朱唇
+        targetCtx.fillStyle = '#e11d48';
+        targetCtx.beginPath();
+        targetCtx.arc(5, headY + 4.5, 1.6, 0, Math.PI * 2);
+        targetCtx.fill();
+    } else if (role === 'LIJING') {
+        // 李靖：儒將銀冠與短鬚
+        targetCtx.fillStyle = '#1c1917';
+        targetCtx.beginPath();
+        targetCtx.arc(-1, headY - 4, 11.5, Math.PI * 0.85, Math.PI * 2.15);
+        targetCtx.fill();
+        targetCtx.fillStyle = '#38bdf8';
+        targetCtx.fillRect(-4, headY - 17, 8, 6);
+        targetCtx.strokeStyle = '#1c1917';
+        targetCtx.lineWidth = 1.5;
+        targetCtx.beginPath();
+        targetCtx.moveTo(4, headY + 5);
+        targetCtx.lineTo(7, headY + 9);
+        targetCtx.stroke();
+    } else if (role === 'LISHIMIN') {
+        // 李世民：紫金龍冠、鳳目神采
+        targetCtx.fillStyle = '#1c1917';
+        targetCtx.beginPath();
+        targetCtx.arc(-1, headY - 4, 11.5, Math.PI * 0.85, Math.PI * 2.15);
+        targetCtx.fill();
+        targetCtx.fillStyle = '#fde047';
+        targetCtx.beginPath();
+        targetCtx.moveTo(-6, headY - 12);
+        targetCtx.lineTo(0, headY - 21);
+        targetCtx.lineTo(6, headY - 12);
+        targetCtx.closePath();
+        targetCtx.fill();
+    } else if (role === 'DAOIST') {
+        // 峨嵋道士：太極蓮花冠與銀白長鬚
+        targetCtx.fillStyle = '#e2e8f0';
+        targetCtx.beginPath();
+        targetCtx.arc(-1, headY - 4, 11.5, Math.PI * 0.85, Math.PI * 2.15);
+        targetCtx.fill();
+        targetCtx.fillStyle = '#38bdf8';
+        targetCtx.fillRect(-5, headY - 18, 10, 7);
+        // 銀白長鬚
+        targetCtx.fillStyle = '#f1f5f9';
+        targetCtx.beginPath();
+        targetCtx.moveTo(1, headY + 5);
+        targetCtx.lineTo(8, headY + 5);
+        targetCtx.lineTo(5, headY + 18);
+        targetCtx.closePath();
+        targetCtx.fill();
+    } else if (role === 'MERCHANT') {
+        // 西域藥商：西域圓錦帽與八字鬍
+        targetCtx.fillStyle = '#d97706';
+        targetCtx.beginPath();
+        targetCtx.arc(0, headY - 6, 12, Math.PI, Math.PI * 2);
+        targetCtx.fill();
+        targetCtx.fillStyle = '#10b981';
+        targetCtx.fillRect(-11, headY - 8, 22, 4);
+    } else {
+        // 隋軍與 Boss 紅纓鐵盔
+        targetCtx.fillStyle = '#52525b';
+        targetCtx.beginPath();
+        targetCtx.arc(0, headY - 3, 12.5, Math.PI * 0.9, Math.PI * 2.1);
+        targetCtx.fill();
+        targetCtx.fillStyle = '#dc2626'; // 紅纓
+        targetCtx.beginPath();
+        targetCtx.arc(-2, headY - 16, 5, 0, Math.PI * 2);
+        targetCtx.fill();
+    }
+
+    // 5. 手持專屬神兵武器與揮砍刀光
+    targetCtx.save();
+    let armAngle = isAttacking ? (-1.2 + atkProgress * 2.6) : Math.sin(globalTick * 0.08) * 0.08;
+    targetCtx.translate(6, -24 + breath);
+    targetCtx.rotate(armAngle);
+
+    if (role === 'PLAYER') {
+        // 虯髯客：崑崙赤龍巨闕劍
+        targetCtx.fillStyle = '#fbbf24';
+        targetCtx.fillRect(-3, -6, 6, 12); // 劍格
+        targetCtx.fillStyle = player.weaponLv >= 4 ? '#fef08a' : '#e2e8f0';
+        targetCtx.beginPath();
+        targetCtx.moveTo(3, -4);
+        targetCtx.lineTo(36, 0);
+        targetCtx.lineTo(3, 4);
+        targetCtx.closePath();
+        targetCtx.fill();
+        // 赤龍劍紋
+        targetCtx.strokeStyle = '#ef4444';
+        targetCtx.lineWidth = 1.5;
+        targetCtx.beginPath();
+        targetCtx.moveTo(5, 0);
+        targetCtx.lineTo(28, 0);
+        targetCtx.stroke();
+
+        // 揮砍半月烈焰刀光
+        if (isAttacking) {
+            targetCtx.strokeStyle = 'rgba(251, 191, 36, 0.85)';
+            targetCtx.lineWidth = 8;
+            targetCtx.beginPath();
+            targetCtx.arc(0, 0, 44, -0.9, 0.9);
+            targetCtx.stroke();
+        }
+    } else if (role === 'HONGFU') {
+        // 紅拂女：紅絲流蘇拂塵
+        targetCtx.fillStyle = '#78350f';
+        targetCtx.fillRect(0, -2, 14, 3);
+        targetCtx.strokeStyle = '#f43f5e';
+        targetCtx.lineWidth = 3;
+        targetCtx.beginPath();
+        targetCtx.moveTo(14, 0);
+        targetCtx.quadraticCurveTo(26, -6 + Math.sin(globalTick * 0.2) * 5, 34, 4);
+        targetCtx.stroke();
+    } else if (role === 'LIJING') {
+        // 李靖：松紋古劍
+        targetCtx.fillStyle = '#38bdf8';
+        targetCtx.fillRect(0, -2, 30, 4);
+    } else if (role.startsWith('BOSS')) {
+        // Boss：雷火雙甕金錘 / 方天畫戟
+        targetCtx.fillStyle = '#78350f';
+        targetCtx.fillRect(-4, -2, 42, 4);
+        targetCtx.fillStyle = '#fbbf24';
+        targetCtx.beginPath();
+        targetCtx.arc(36, 0, 10, 0, Math.PI * 2);
+        targetCtx.fill();
+    } else if (role === 'THUG' || role === 'GUARD') {
+        // 敵兵：長戈 / 狼牙棒
+        targetCtx.fillStyle = '#a1a1aa';
+        targetCtx.fillRect(0, -2, 26, 4);
+    }
+
+    targetCtx.restore();
+    targetCtx.restore();
+}
+
+// --- 玩家攻擊與四大技能系統 ---
+function triggerAction(action) {
+    initAudio();
+    if (gameState === 'DIALOGUE') {
+        if (action === 'INTERACT') advanceDialogue();
+        return;
+    }
+
+    if (action === 'INTERACT') {
+        tryInteract();
+    } else if (action === 'ATTACK') {
+        performNormalAttack();
+    } else if (action === 'SKILL_K') {
+        performDragonSlash();
+    } else if (action === 'SKILL_U') {
+        performEarthShatter();
+    } else if (action === 'SKILL_I') {
+        performThreeHeroesUlt();
+    } else if (action === 'DASH') {
+        performDash();
+    } else if (action === 'POTION') {
+        useHealingPotion();
+    }
+}
+
+function performNormalAttack() {
+    if (player.atkTimer > 4) return;
+    player.atkTimer = 16;
+    player.comboStep = (player.comboStep % 3) + 1;
+    player.comboResetTimer = 45;
+    playSFX('slash');
+
+    const hitRange = 78;
+    const dmgMult = player.comboStep === 3 ? 1.45 : 1.0;
+    const dmg = Math.round(player.atkPower * dmgMult);
+
+    if (player.comboStep === 3) {
+        shockwaves.push({ x: player.x + player.facing * 32, y: player.y, r: 8, maxR: 65, color: '#fbbf24', alpha: 0.85 });
+    }
+
+    enemies.forEach(en => {
+        const dx = en.x - player.x;
+        const dy = en.y - player.y;
+        const dist = Math.hypot(dx, dy);
+        const inFront = (dx * player.facing >= -18);
+        if (dist <= hitRange + en.r && inFront) {
+            damageEnemy(en, dmg, 18, player.facing * 7);
+            player.sp = Math.min(player.maxSp, player.sp + 7);
+        }
+    });
+}
+
+// [K] 赤龍破空斬 (20 SP)
+function performDragonSlash() {
+    if (player.sp < 20) {
+        spawnFloatText(player.x, player.y - 40, '真氣不足 (需 20 SP)！', '#38bdf8', 15);
+        return;
+    }
+    player.sp -= 20;
+    player.atkTimer = 20;
+    playSFX('slash');
+    screenShake = 6;
+
+    projectiles.push({
+        x: player.x + player.facing * 26,
+        y: player.y - 12,
+        vx: player.facing * 11,
+        vy: 0,
+        r: 30,
+        dmg: Math.round(player.atkPower * 2.1),
+        poiseDmg: 35,
+        fromPlayer: true,
+        color: '#f97316',
+        life: 55,
+        hitSet: new Set()
+    });
+    spawnFloatText(player.x, player.y - 48, '🔥 赤龍破空斬！', '#fb923c', 18);
+}
+
+// [U] 霸王裂地破 (35 SP - 專門擊碎 Boss 黃色護體罡氣)
+function performEarthShatter() {
+    if (player.sp < 35) {
+        spawnFloatText(player.x, player.y - 40, '真氣不足 (需 35 SP)！', '#38bdf8', 15);
+        return;
+    }
+    player.sp -= 35;
+    player.atkTimer = 24;
+    playSFX('quake');
+    screenShake = 16;
+
+    shockwaves.push({ x: player.x, y: player.y, r: 12, maxR: 175, color: '#facc15', alpha: 1.0 });
+    spawnParticles(player.x, player.y, '#fbbf24', 28);
+    spawnFloatText(player.x, player.y - 52, '💥 霸王裂地破（碎罡氣）！', '#fde047', 20);
+
+    enemies.forEach(en => {
+        const dist = Math.hypot(en.x - player.x, en.y - player.y);
+        if (dist <= 175 + en.r) {
+            damageEnemy(en, Math.round(player.atkPower * 2.6), 95, Math.sign(en.x - player.x) * 14);
+        }
+    });
+}
+
+// [I] 風塵三俠合擊 (55 SP - 全螢幕劍陣風暴)
+function performThreeHeroesUlt() {
+    if (player.sp < 55) {
+        spawnFloatText(player.x, player.y - 40, '真氣不足 (需 55 SP)！', '#c084fc', 15);
+        return;
+    }
+    player.sp -= 55;
+    player.invulnTimer = 45;
+    playSFX('quake');
+    screenShake = 24;
+    flashColor = '#fde047';
+    flashAlpha = 0.45;
+
+    shockwaves.push({ x: player.x, y: player.y, r: 20, maxR: 380, color: '#c084fc', alpha: 1.0 });
+    spawnFloatText(player.x, player.y - 60, '⚡ 風塵三俠・天罡劍陣合擊！', '#e879f9', 22);
+
+    enemies.forEach(en => {
+        if (en.type === 'DUMMY') {
+            damageEnemy(en, Math.round(player.atkPower * 4.2), 120, 0);
+        } else {
+            damageEnemy(en, Math.round(player.atkPower * 4.2), 130, 0);
+            spawnParticles(en.x, en.y, '#e879f9', 22);
+        }
+    });
+}
+
+// [L] 疾風步閃避 (支援 Boss 紅區極限閃避回氣)
+function performDash() {
+    if (player.dashCooldown > 0) return;
+    player.dashTimer = 12;
+    player.dashCooldown = 28;
+    player.invulnTimer = 22;
+
+    let dx = 0, dy = 0;
+    if (keys['KeyA'] || keys['ArrowLeft']) dx -= 1;
+    if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
+    if (keys['KeyW'] || keys['ArrowUp']) dy -= 1;
+    if (keys['KeyS'] || keys['ArrowDown']) dy += 1;
+    if (dx === 0 && dy === 0) dx = player.facing;
+
+    const len = Math.hypot(dx, dy) || 1;
+    player.dashVx = (dx / len) * 11.5;
+    player.dashVy = (dy / len) * 9.5;
+    playSFX('slash');
+
+    // 檢查是否在 Boss 紅區預警內觸發【極限閃避】
+    enemies.forEach(en => {
+        if (en.isBoss && en.telegraph && isPointInTelegraph(player.x, player.y, en.telegraph)) {
+            player.sp = Math.min(player.maxSp, player.sp + 20);
+            shockwaves.push({ x: player.x, y: player.y, r: 6, maxR: 75, color: '#38bdf8', alpha: 0.95 });
+            spawnFloatText(player.x, player.y - 55, '⚡ 極限閃避！+20 SP', '#38bdf8', 20);
+        }
+    });
+}
+
+// [H] 飲用 100 錢千年回春藥水
+function useHealingPotion() {
+    if (player.potions <= 0) {
+        spawnFloatText(player.x, player.y - 42, '🧪 藥水已用盡！請找胡萬金(100錢)或按 B 購買', '#f87171', 16);
+        return;
+    }
+    player.potions--;
+    const healHp = Math.round(player.maxHp * 0.5);
+    player.hp = Math.min(player.maxHp, player.hp + healHp);
+    player.sp = Math.min(player.maxSp, player.sp + 35);
+    playSFX('potion');
+    shockwaves.push({ x: player.x, y: player.y, r: 8, maxR: 70, color: '#34d399', alpha: 0.9 });
+    spawnParticles(player.x, player.y, '#4ade80', 18);
+    spawnFloatText(player.x, player.y - 48, `🧪 飲用千年回春水！+${healHp} HP / +35 SP`, '#4ade80', 18);
+    updateUIHeader();
+}
+
+// --- 敵人受擊、護體罡氣破防與擊殺獎勵 ---
+function damageEnemy(en, dmg, poiseDmg, knockbackX) {
+    let finalDmg = dmg;
+    if (en.isBoss && en.stunnedTimer > 0) {
+        finalDmg = Math.round(dmg * 1.8); // 破防虛弱 1.8 倍傷害
+    }
+
+    en.hp -= finalDmg;
+    en.hitFlash = 8;
+    if (!en.isBoss && en.type !== 'DUMMY') {
+        en.x = Math.max(80, Math.min(W - 80, en.x + knockbackX));
+    }
+    playSFX('hit');
+    spawnParticles(en.x, en.y - 20, '#fbbf24', 10);
+    spawnFloatText(
+        en.x + (Math.random() - 0.5) * 20,
+        en.y - 45,
+        en.stunnedTimer > 0 ? `💥 破防暴擊 -${finalDmg}` : `-${finalDmg}`,
+        en.stunnedTimer > 0 ? '#fde047' : '#f87171',
+        en.stunnedTimer > 0 ? 20 : 16
+    );
+
+    // 削減 Boss 黃色護體罡氣條
+    if (en.isBoss && en.stunnedTimer <= 0 && en.poise > 0) {
+        en.poise = Math.max(0, en.poise - poiseDmg);
+        if (en.poise <= 0) {
+            en.stunnedTimer = 240; // 4 秒破防虛弱
+            en.telegraph = null;    // 打斷正在蓄力的紅區殺招
+            screenShake = 18;
+            shockwaves.push({ x: en.x, y: en.y, r: 10, maxR: 150, color: '#fde047', alpha: 1 });
+            spawnFloatText(en.x, en.y - 72, '⚡ 護體罡氣擊碎！陷入 1.8 倍受傷虛弱！', '#fde047', 21);
+        }
+    }
+
+    // 木人樁不死回血
+    if (en.type === 'DUMMY' && en.hp < 50000) {
+        en.hp = 99999;
+    }
+
+    // 擊殺判定
+    if (en.hp <= 0 && en.type !== 'DUMMY') {
+        const rewardCoins = en.isBoss ? 220 : 55;
+        player.coins += rewardCoins;
+        player.kills++;
+        playSFX('coin');
+        spawnParticles(en.x, en.y - 15, '#fde047', 26);
+        spawnFloatText(en.x, en.y - 35, `💰 擊破敵軍 +${rewardCoins} 五銖錢！`, '#fde047', 18);
+        updateUIHeader();
+    }
+
+    enemies = enemies.filter(e => e.hp > 0);
+}
+
+// --- 互動、對話、100錢藥商與國文選擇題 (答錯天雷扣血 45 HP) ---
+let activeDialogueList = [];
+let activeDialogueIdx = 0;
+
+function tryInteract() {
+    // 1. 檢查寶箱
+    for (let box of chests) {
+        if (!box.opened && Math.hypot(player.x - box.x, player.y - box.y) < 75) {
+            box.opened = true;
+            player.coins += box.coins;
+            player.potions += box.potions;
+            playSFX('coin');
+            spawnParticles(box.x, box.y, '#fde047', 24);
+            spawnFloatText(box.x, box.y - 40, `🎁 開啟【${box.name}】+${box.coins}錢 & +${box.potions}瓶藥水！`, '#fde047', 18);
+            updateUIHeader();
+            return;
+        }
+    }
+
+    // 2. 檢查 NPC 與藥商
+    for (let npc of npcs) {
+        if (Math.hypot(player.x - npc.x, player.y - npc.y) < 88) {
+            if (npc.isMerchant) {
+                openMerchantDialogue(npc);
+            } else if (npc.dialogue) {
+                startDialogueSequence(npc.dialogue);
+            }
+            return;
+        }
+    }
+
+    spawnFloatText(player.x, player.y - 38, '💡 請走近人物、藥商或寶箱再按 [E]', '#d6d3d1', 14);
+}
+
+function openMerchantDialogue(npc) {
+    startDialogueSequence([
+        {
+            type: 'MERCHANT_SHOP',
+            speaker: npc.name,
+            role: 'MERCHANT',
+            text: '「客官吉祥！小老兒自西域萬里行商而來，特備祖傳【🧪 千年回春藥水】，每瓶只收 100 五銖錢！戰場上按 [H] 鍵飲用即可瞬間恢復 50% 氣血與 35 點真氣，要買幾瓶備用嗎？」'
+        }
+    ]);
+}
+
+function startDialogueSequence(list) {
+    activeDialogueList = list;
+    activeDialogueIdx = 0;
+    gameState = 'DIALOGUE';
+    document.getElementById('dialogue-overlay').classList.remove('hidden');
+    renderCurrentDialogueStep();
+}
+
+function renderCurrentDialogueStep() {
+    const step = activeDialogueList[activeDialogueIdx];
+    if (!step) {
+        closeDialogue();
+        return;
+    }
+
+    const titleBadge = document.getElementById('dialogue-title-badge');
+    const speakerTag = document.getElementById('dialogue-speaker-tag');
+    const textEl = document.getElementById('dialogue-text');
+    const optionsEl = document.getElementById('dialogue-options');
+    const feedbackEl = document.getElementById('dialogue-feedback');
+    const nextHintEl = document.getElementById('dialogue-next-hint');
+
+    optionsEl.innerHTML = '';
+    feedbackEl.classList.add('hidden');
+    updateDialogueStatusBadge();
+
+    if (step.type === 'QA') {
+        const qa = QA_DATABASE.find(q => q.id === step.qaId) || QA_DATABASE[0];
+        titleBadge.textContent = `⚡ 國文隨堂考題（答錯將遭天雷扣血 45 HP！）`;
+        titleBadge.className = 'bg-rose-900/90 border border-rose-400 text-rose-100 text-xs font-bold px-2.5 py-0.5 rounded-full';
+        speakerTag.textContent = '太學考官';
+        drawPortrait('DAOIST');
+
+        textEl.textContent = qa.q;
+        nextHintEl.classList.add('hidden');
+
+        qa.options.forEach((optStr, idx) => {
+            const choiceNum = idx + 1;
+            const btn = document.createElement('button');
+            btn.className = 'w-full text-left bg-[#29180e] hover:bg-[#452613] border border-amber-600/80 hover:border-amber-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-bold text-stone-100 transition flex items-center justify-between';
+            btn.innerHTML = `<span>${optStr}</span><span class="text-amber-400 text-xs">按 [${choiceNum}] 或點擊</span>`;
+            btn.onclick = () => submitQAAnswer(qa, choiceNum);
+            optionsEl.appendChild(btn);
+        });
+
+    } else if (step.type === 'MERCHANT_SHOP') {
+        titleBadge.textContent = '🧪 西域行腳藥商（100 錢補血藥水）';
+        titleBadge.className = 'bg-emerald-900/90 border border-emerald-400 text-emerald-100 text-xs font-bold px-2.5 py-0.5 rounded-full';
+        speakerTag.textContent = '胡萬金';
+        drawPortrait('MERCHANT');
+        textEl.textContent = step.text;
+        nextHintEl.classList.add('hidden');
+
+        const buy1Btn = document.createElement('button');
+        buy1Btn.className = 'w-full text-left bg-emerald-950/90 hover:bg-emerald-800 border border-emerald-400 rounded-lg px-3 py-2 text-xs sm:text-sm font-bold text-emerald-100 transition flex justify-between';
+        buy1Btn.innerHTML = `<span>[1] 🧪 購買 1 瓶「千年回春藥水」（恢復 50% 氣血 + 35 真氣）</span><span class="text-amber-300">💰 100 五銖錢</span>`;
+        buy1Btn.onclick = () => buyPotionFromMerchant(1);
+
+        const openForgeBtn = document.createElement('button');
+        openForgeBtn.className = 'w-full text-left bg-amber-950/90 hover:bg-amber-800 border border-amber-500 rounded-lg px-3 py-2 text-xs sm:text-sm font-bold text-amber-100 transition flex justify-between';
+        openForgeBtn.innerHTML = `<span>[2] ⚒️ 開啟神兵鍛造鋪（升級武器與寶甲）</span><span class="text-amber-300">前往強化</span>`;
+        openForgeBtn.onclick = () => { closeDialogue(); openModal('modal-shop'); };
+
+        const leaveBtn = document.createElement('button');
+        leaveBtn.className = 'w-full text-left bg-stone-900 hover:bg-stone-800 border border-stone-600 rounded-lg px-3 py-1.5 text-xs font-bold text-stone-300 transition';
+        leaveBtn.textContent = '[3] 暫時不用，繼續闖蕩江湖';
+        leaveBtn.onclick = () => closeDialogue();
+
+        optionsEl.appendChild(buy1Btn);
+        optionsEl.appendChild(openForgeBtn);
+        optionsEl.appendChild(leaveBtn);
+
+    } else {
+        // 一般歷史劇情對話
+        titleBadge.textContent = '📜 《虯髯客傳》原著劇情演繹';
+        titleBadge.className = 'bg-amber-800/80 border border-amber-400 text-amber-200 text-xs font-bold px-2.5 py-0.5 rounded-full';
+        speakerTag.textContent = step.speaker || '江湖俠客';
+        drawPortrait(step.role || 'PLAYER');
+        textEl.textContent = step.text;
+        nextHintEl.classList.remove('hidden');
+    }
+}
+
+function buyPotionFromMerchant(count) {
+    const cost = count * 100;
+    const feedbackEl = document.getElementById('dialogue-feedback');
+    feedbackEl.classList.remove('hidden');
+
+    if (player.coins < cost) {
+        feedbackEl.className = 'mt-2 p-2 rounded border border-rose-500 bg-rose-950/90 text-rose-200 text-xs sm:text-sm font-bold';
+        feedbackEl.textContent = `❌ 五銖錢不足（需要 ${cost} 錢，目前持有 ${player.coins} 錢）！可打破木箱或回答考題賺取五銖錢。`;
+        return;
+    }
+
+    player.coins -= cost;
+    player.potions += count;
+    playSFX('coin');
+    updateUIHeader();
+    updateDialogueStatusBadge();
+
+    feedbackEl.className = 'mt-2 p-2 rounded border border-emerald-400 bg-emerald-950/90 text-emerald-200 text-xs sm:text-sm font-bold';
+    feedbackEl.textContent = `✅ 購買成功！花費 ${cost} 錢購得 ${count} 瓶【千年回春藥水】（目前持有 ${player.potions} 瓶，戰鬥中按 H 鍵即可飲用）！`;
+}
+
+// 處理國文考題作答（答錯觸發天雷扣血 45 HP）
+function submitQAAnswer(qa, choiceNum) {
+    const feedbackEl = document.getElementById('dialogue-feedback');
+    const nextHintEl = document.getElementById('dialogue-next-hint');
+    feedbackEl.classList.remove('hidden');
+
+    if (choiceNum === qa.correct) {
+        // 答對獎勵
+        playSFX('correct');
+        const firstTime = !player.qaSolved.has(qa.id);
+        player.qaSolved.add(qa.id);
+        const reward = firstTime ? 120 : 40;
+        player.coins += reward;
+        player.sp = player.maxSp;
+        updateUIHeader();
+        updateDialogueStatusBadge();
+
+        feedbackEl.className = 'mt-2 p-2.5 rounded-lg border border-emerald-400 bg-emerald-950/95 text-emerald-200 text-xs sm:text-sm font-bold';
+        feedbackEl.innerHTML = `⭕ <b>回答正確！獎勵 +${reward} 五銖錢 ＆ 真氣全滿！</b><br>${qa.expl}`;
+        nextHintEl.classList.remove('hidden');
+    } else {
+        // 答錯：觸發「⚡ 文氣反噬・天雷懲罰」扣除 45 HP
+        playSFX('thunder');
+        player.thunderCount++;
+        player.hp = Math.max(1, player.hp - 45);
+        screenShake = 24;
+        flashColor = '#ef4444';
+        flashAlpha = 0.65;
+        lightningBolt = { x: player.x, y: player.y, timer: 24 };
+        spawnFloatText(player.x, player.y - 60, '⚡ 答錯遭天雷反噬！-45 HP', '#ef4444', 22);
+
+        updateUIHeader();
+        updateDialogueStatusBadge();
+
+        feedbackEl.className = 'mt-2 p-2.5 rounded-lg border border-rose-500 bg-rose-950/95 text-rose-200 text-xs sm:text-sm font-bold';
+        feedbackEl.innerHTML = `⚡ <b>【天雷反噬 -45 HP】回答錯誤！</b>請再仔細回想課文內容，重新點選上方選項作答！`;
+    }
+}
+
+function advanceDialogue() {
+    activeDialogueIdx++;
+    if (activeDialogueIdx >= activeDialogueList.length) {
+        closeDialogue();
+    } else {
+        renderCurrentDialogueStep();
+    }
+}
+
+function closeDialogue() {
+    gameState = 'PLAY';
+    document.getElementById('dialogue-overlay').classList.add('hidden');
+}
+
+function updateDialogueStatusBadge() {
+    const el = document.getElementById('dialogue-player-status');
+    if (el) {
+        el.textContent = `❤️ 氣血 ${Math.ceil(player.hp)}/${player.maxHp} ｜ 💰 ${player.coins} 錢 ｜ 🧪 ${player.potions} 瓶`;
+    }
+}
+
+// 繪製對話框左側的高清半身立繪 Canvas
+function drawPortrait(role) {
+    pCtx.clearRect(0, 0, 144, 150);
+    const bgGrad = pCtx.createRadialGradient(72, 75, 10, 72, 75, 80);
+    bgGrad.addColorStop(0, '#78350f');
+    bgGrad.addColorStop(1, '#140c07');
+    pCtx.fillStyle = bgGrad;
+    pCtx.fillRect(0, 0, 144, 150);
+
+    // 背後古風圓月光環
+    pCtx.strokeStyle = 'rgba(251, 191, 36, 0.35)';
+    pCtx.lineWidth = 2;
+    pCtx.beginPath();
+    pCtx.arc(72, 75, 52, 0, Math.PI * 2);
+    pCtx.stroke();
+
+    drawAncientCharacter(pCtx, 72, 138, role, 1, 0, false, 0, 2.15, true);
+}
+
+// --- Boss 四大紅區殺招與二階段狂暴 AI ---
+function isPointInTelegraph(px, py, tel) {
+    if (!tel) return false;
+    if (tel.type === 'CHARGE') {
+        // 矩形衝鋒紅區
+        const dx = px - tel.x;
+        const dy = py - tel.y;
+        const cos = Math.cos(-tel.angle);
+        const sin = Math.sin(-tel.angle);
+        const rx = dx * cos - dy * sin;
+        const ry = dx * sin + dy * cos;
+        return rx >= 0 && rx <= tel.len && Math.abs(ry) <= tel.w / 2;
+    } else if (tel.type === 'THUNDER_CIRCLES') {
+        return tel.circles.some(c => Math.hypot(px - c.x, py - c.y) <= c.r);
+    } else if (tel.type === 'WHIRLWIND') {
+        return Math.hypot(px - tel.x, py - tel.y) <= tel.r;
+    } else if (tel.type === 'FAN_WAVE') {
+        const dist = Math.hypot(px - tel.x, py - tel.y);
+        return dist <= 180;
+    }
+    return false;
+}
+
+function updateEnemiesAndBoss() {
+    const dmgScale = DIFFICULTIES[diffIndex].dmgMult;
+
+    enemies.forEach(en => {
+        if (en.hitFlash > 0) en.hitFlash--;
+        if (en.type === 'DUMMY') return;
+
+        // 破防虛弱暈眩中
+        if (en.stunnedTimer > 0) {
+            en.stunnedTimer--;
+            if (en.stunnedTimer === 0) {
+                en.poise = en.maxPoise; // 恢復護體罡氣
+            }
+            return;
+        }
+
+        const dx = player.x - en.x;
+        const dy = player.y - en.y;
+        const dist = Math.hypot(dx, dy);
+        en.facing = dx >= 0 ? 1 : -1;
+
+        if (en.isBoss) {
+            // 檢查是否進入 55% 血量二階段【🔥 狂暴覺醒】
+            if (!en.enraged && en.hp <= en.maxHp * 0.55) {
+                en.enraged = true;
+                screenShake = 20;
+                flashColor = '#ef4444';
+                flashAlpha = 0.35;
+                shockwaves.push({ x: en.x, y: en.y, r: 15, maxR: 220, color: '#ef4444', alpha: 1 });
+                spawnFloatText(en.x, en.y - 75, `🔥 【${en.name}】二階段・狂暴覺醒！`, '#f87171', 22);
+            }
+
+            // 若正在施放紅區預警殺招
+            if (en.telegraph) {
+                en.telegraph.timer++;
+                if (en.telegraph.timer >= en.telegraph.maxTimer) {
+                    executeBossTelegraphAttack(en, dmgScale);
+                    en.telegraph = null;
+                    en.atkCooldown = en.enraged ? 48 : 78;
+                }
+                return;
+            }
+
+            // Boss 移動與發動四大紅區殺招
+            const moveSpd = en.enraged ? 2.3 : 1.65;
+            if (dist > 70) {
+                en.x += (dx / dist) * moveSpd;
+                en.y += (dy / dist) * moveSpd * 0.85;
+                en.walkCycle += 0.18;
+            }
+
+            en.atkCooldown--;
+            if (en.atkCooldown <= 0) {
+                const roll = Math.random();
+                const windup = en.enraged ? 40 : 54;
+                if (roll < 0.28) {
+                    // 殺招 1：破軍直線衝鋒
+                    const ang = Math.atan2(dy, dx);
+                    en.telegraph = {
+                        type: 'CHARGE',
+                        label: '⚠️ 破軍衝鋒（按 L 閃避）',
+                        x: en.x, y: en.y,
+                        angle: ang, len: 290, w: 68,
+                        timer: 0, maxTimer: windup
+                    };
+                } else if (roll < 0.56) {
+                    // 殺招 2：連環天雷轟（多重紅圈）
+                    const circles = [
+                        { x: player.x, y: player.y, r: 62 },
+                        { x: Math.max(90, Math.min(W - 90, player.x + (Math.random() - 0.5) * 180)), y: Math.max(240, Math.min(H - 40, player.y + (Math.random() - 0.5) * 110)), r: 58 },
+                        { x: Math.max(90, Math.min(W - 90, player.x + (Math.random() - 0.5) * 180)), y: Math.max(240, Math.min(H - 40, player.y + (Math.random() - 0.5) * 110)), r: 58 }
+                    ];
+                    en.telegraph = {
+                        type: 'THUNDER_CIRCLES',
+                        label: '⚠️ 連環天雷轟',
+                        circles,
+                        timer: 0, maxTimer: windup
+                    };
+                } else if (roll < 0.80) {
+                    // 殺招 3：烈焰弧月劍氣（扇形遠程彈幕）
+                    const ang = Math.atan2(dy, dx);
+                    en.telegraph = {
+                        type: 'FAN_WAVE',
+                        label: '⚠️ 烈焰扇形劍氣',
+                        x: en.x, y: en.y,
+                        angle: ang,
+                        timer: 0, maxTimer: windup - 8
+                    };
+                } else {
+                    // 殺招 4：霸王旋風絞殺陣
+                    en.telegraph = {
+                        type: 'WHIRLWIND',
+                        label: '⚠️ 霸王旋風斬',
+                        x: en.x, y: en.y,
+                        r: 135,
+                        timer: 0, maxTimer: windup
+                    };
+                }
+            }
+
+        } else {
+            // 一般小怪 (惡霸 / 驍果鐵衛 / 神臂弩手)
+            if (en.type === 'ARCHER') {
+                if (dist > 260) {
+                    en.x += (dx / dist) * 1.4;
+                    en.y += (dy / dist) * 1.2;
+                } else if (dist < 140) {
+                    en.x -= (dx / dist) * 1.2;
+                }
+                en.atkCooldown--;
+                if (en.atkCooldown <= 0) {
+                    en.atkCooldown = 105;
+                    const ang = Math.atan2(dy, dx);
+                    projectiles.push({
+                        x: en.x, y: en.y - 16,
+                        vx: Math.cos(ang) * 7.2,
+                        vy: Math.sin(ang) * 7.2,
+                        r: 10,
+                        dmg: Math.round(en.atk * dmgScale),
+                        fromPlayer: false,
+                        color: '#f87171',
+                        life: 90
+                    });
+                }
+            } else {
+                // 近戰小怪
+                if (dist > 44) {
+                    en.x += (dx / dist) * 1.75;
+                    en.y += (dy / dist) * 1.45;
+                    en.walkCycle += 0.16;
+                } else {
+                    en.atkCooldown--;
+                    if (en.atkCooldown <= 0) {
+                        en.atkCooldown = 55;
+                        damagePlayer(Math.round(en.atk * dmgScale));
+                    }
+                }
+            }
+        }
+    });
+}
+
+function executeBossTelegraphAttack(en, dmgScale) {
+    const tel = en.telegraph;
+    playSFX('quake');
+    screenShake = 14;
+
+    if (tel.type === 'CHARGE') {
+        if (isPointInTelegraph(player.x, player.y, tel)) {
+            damagePlayer(Math.round(en.atk * 1.35 * dmgScale));
+        }
+        en.x = Math.max(80, Math.min(W - 80, tel.x + Math.cos(tel.angle) * (tel.len - 30)));
+        en.y = Math.max(235, Math.min(H - 35, tel.y + Math.sin(tel.angle) * (tel.len - 30)));
+        shockwaves.push({ x: en.x, y: en.y, r: 10, maxR: 95, color: '#ef4444', alpha: 0.9 });
+
+    } else if (tel.type === 'THUNDER_CIRCLES') {
+        tel.circles.forEach(c => {
+            shockwaves.push({ x: c.x, y: c.y, r: 8, maxR: c.r, color: '#facc15', alpha: 0.95 });
+            spawnParticles(c.x, c.y, '#fde047', 16);
+            if (Math.hypot(player.x - c.x, player.y - c.y) <= c.r) {
+                damagePlayer(Math.round(en.atk * 1.25 * dmgScale));
+            }
+        });
+
+    } else if (tel.type === 'FAN_WAVE') {
+        const count = en.enraged ? 5 : 3;
+        const spread = 0.26;
+        for (let i = 0; i < count; i++) {
+            const a = tel.angle + (i - (count - 1) / 2) * spread;
+            projectiles.push({
+                x: en.x, y: en.y - 15,
+                vx: Math.cos(a) * 8.2,
+                vy: Math.sin(a) * 8.2,
+                r: 16,
+                dmg: Math.round(en.atk * 1.1 * dmgScale),
+                fromPlayer: false,
+                color: '#c084fc',
+                life: 85
+            });
+        }
+
+    } else if (tel.type === 'WHIRLWIND') {
+        shockwaves.push({ x: en.x, y: en.y, r: 12, maxR: tel.r, color: '#ef4444', alpha: 0.95 });
+        if (Math.hypot(player.x - en.x, player.y - en.y) <= tel.r) {
+            damagePlayer(Math.round(en.atk * 1.3 * dmgScale));
+        }
+    }
+}
+
+function damagePlayer(rawDmg) {
+    if (player.invulnTimer > 0) return;
+    const dmg = Math.max(1, Math.round(rawDmg * (1 - player.defenseRate)));
+    player.hp -= dmg;
+    player.invulnTimer = 28;
+    screenShake = 10;
+    flashColor = '#dc2626';
+    flashAlpha = 0.35;
+    playSFX('hit');
+    spawnFloatText(player.x, player.y - 45, `-${dmg} HP`, '#ef4444', 18);
+
+    if (player.hp <= 0) {
+        // 重傷調息保護機制（不卡關，原地調息恢復）
+        player.hp = Math.round(player.maxHp * 0.65);
+        player.sp = player.maxSp;
+        player.invulnTimer = 60;
+        spawnFloatText(player.x, player.y - 65, '🛡️ 風塵俠侶護體！重傷調息恢復 65% 氣血', '#fde047', 19);
+    }
+    updateUIHeader();
+}
+
+// --- 助戰夥伴 AI (紅拂女 & 李靖自動協助攻擊敵人) ---
+function updateAllies() {
+    allies.forEach(al => {
+        const target = enemies.find(e => e.type !== 'DUMMY');
+        if (!target) {
+            // 跟隨玩家
+            const dx = (player.x - 55) - al.x;
+            const dy = player.y - al.y;
+            if (Math.hypot(dx, dy) > 40) {
+                al.x += dx * 0.04;
+                al.y += dy * 0.04;
+            }
+            return;
+        }
+        const dx = target.x - al.x;
+        const dy = target.y - al.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 130) {
+            al.x += (dx / dist) * 2.1;
+            al.y += (dy / dist) * 1.8;
+        }
+        al.atkTimer++;
+        if (al.atkTimer >= 85) {
+            al.atkTimer = 0;
+            const ang = Math.atan2(dy, dx);
+            projectiles.push({
+                x: al.x, y: al.y - 16,
+                vx: Math.cos(ang) * 9.5,
+                vy: Math.sin(ang) * 9.5,
+                r: 14,
+                dmg: Math.round(player.atkPower * 0.65),
+                poiseDmg: 12,
+                fromPlayer: true,
+                color: al.role === 'HONGFU' ? '#f43f5e' : '#38bdf8',
+                life: 55,
+                hitSet: new Set()
+            });
+        }
+    });
+}
+
+// --- 繪製遊戲內 HUD 狀態列與置頂雙層 Boss 血條 ---
+function drawGameHUD() {
+    // 1. 左上角虯髯客狀態面板
+    ctx.save();
+    ctx.fillStyle = 'rgba(15, 10, 7, 0.88)';
+    ctx.strokeStyle = '#d97706';
+    ctx.lineWidth = 2;
+    ctx.fillRect(14, 12, 295, 76);
+    ctx.strokeRect(14, 12, 295, 76);
+
+    ctx.fillStyle = '#fde047';
+    ctx.font = 'bold 13px "Noto Serif TC", serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`⚔️ 虯髯客｜${WEAPON_TIERS[player.weaponLv - 1]}`, 24, 30);
+
+    // HP 氣血條
+    ctx.fillStyle = '#292524';
+    ctx.fillRect(24, 38, 195, 13);
+    const hpRatio = Math.max(0, player.hp / player.maxHp);
+    ctx.fillStyle = '#dc2626';
+    ctx.fillRect(24, 38, 195 * hpRatio, 13);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 10px sans-serif';
+    ctx.fillText(`HP ${Math.ceil(player.hp)} / ${player.maxHp}`, 30, 48);
+
+    // SP 真氣條
+    ctx.fillStyle = '#292524';
+    ctx.fillRect(24, 56, 195, 11);
+    const spRatio = Math.max(0, player.sp / player.maxSp);
+    ctx.fillStyle = '#0284c7';
+    ctx.fillRect(24, 56, 195 * spRatio, 11);
+    ctx.fillStyle = '#e0f2fe';
+    ctx.font = 'bold 9px sans-serif';
+    ctx.fillText(`SP ${Math.floor(player.sp)} / ${player.maxSp}`, 30, 65);
+
+    // 右側錢幣與藥水顯示
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText(`💰 ${player.coins} 錢`, 228, 48);
+    ctx.fillStyle = '#4ade80';
+    ctx.fillText(`🧪 ${player.potions} 瓶(H)`, 228, 66);
+    ctx.restore();
+
+    // 2. 當前章節標題橫幅
+    ctx.save();
+    ctx.fillStyle = 'rgba(18, 11, 7, 0.82)';
+    ctx.strokeStyle = '#92400e';
+    ctx.lineWidth = 1.5;
+    ctx.fillRect(W - 310, 12, 296, 32);
+    ctx.strokeRect(W - 310, 12, 296, 32);
+    ctx.fillStyle = '#fef3c7';
+    ctx.font = 'bold 13px "Noto Serif TC", serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(CHAPTER_TITLES[currentChapter], W - 162, 33);
+    ctx.restore();
+
+    // 3. 置頂雙層 Boss 血條（生命值 + 黃色護體罡氣破防條）
+    const boss = enemies.find(e => e.isBoss);
+    if (boss) {
+        ctx.save();
+        const bx = W / 2 - 210;
+        const by = 14;
+        const bw = 420;
+        ctx.fillStyle = 'rgba(15, 6, 6, 0.92)';
+        ctx.strokeStyle = boss.enraged ? '#ef4444' : '#f59e0b';
+        ctx.lineWidth = 2.5;
+        ctx.fillRect(bx, by, bw, 56);
+        ctx.strokeRect(bx, by, bw, 56);
+
+        ctx.fillStyle = boss.enraged ? '#fca5a5' : '#fde047';
+        ctx.font = 'bold 13px "Noto Serif TC", serif';
+        ctx.textAlign = 'center';
+        const statusLabel = boss.stunnedTimer > 0
+            ? '【💫 護體罡氣擊碎・1.8倍受傷虛弱中！】'
+            : (boss.enraged ? '【🔥 二階段・狂暴覺醒】' : '【守關首領】');
+        ctx.fillText(`${statusLabel} ${boss.name}`, W / 2, by + 17);
+
+        // 第一層：Boss 血量
+        ctx.fillStyle = '#292524';
+        ctx.fillRect(bx + 14, by + 23, bw - 28, 13);
+        ctx.fillStyle = boss.enraged ? '#dc2626' : '#ea580c';
+        ctx.fillRect(bx + 14, by + 23, (bw - 28) * Math.max(0, boss.hp / boss.maxHp), 13);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.fillText(`HP ${Math.ceil(boss.hp)} / ${boss.maxHp}`, W / 2, by + 33);
+
+        // 第二層：黃色護體罡氣條 (Poise)
+        ctx.fillStyle = '#292524';
+        ctx.fillRect(bx + 14, by + 40, bw - 28, 9);
+        ctx.fillStyle = boss.stunnedTimer > 0 ? '#ef4444' : '#facc15';
+        ctx.fillRect(bx + 14, by + 40, (bw - 28) * Math.max(0, boss.poise / boss.maxPoise), 9);
+        ctx.fillStyle = '#fef08a';
+        ctx.font = 'bold 9px sans-serif';
+        ctx.fillText(`🛡️ 護體罡氣 ${Math.ceil(boss.poise)}/${boss.maxPoise} (用 U 霸王裂地破擊碎)`, W / 2, by + 48);
+        ctx.restore();
+    }
+}
+
+// --- 粒子與浮動文字工具 ---
+function spawnParticles(x, y, color, count = 12) {
+    for (let i = 0; i < count; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const spd = 1.5 + Math.random() * 5.5;
+        particles.push({
+            x, y,
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd,
+            r: 2 + Math.random() * 3,
+            color,
+            alpha: 1.0
+        });
+    }
+}
+
+function spawnFloatText(x, y, text, color = '#fde047', size = 16) {
+    floatTexts.push({ x, y, text, color, size, alpha: 1.0, vy: -1.1 });
+}
+
+// --- 彈出視窗與商店/圖鑑/小抄渲染 ---
+function openModal(id) {
+    if (id === 'modal-shop') renderShopModal();
+    if (id === 'modal-codex') renderCodexModal();
+    if (id === 'modal-qa-cheat') renderQACheatModal();
+    if (id === 'modal-custom-img') initCustomImagePanel();
+    document.getElementById(id).classList.remove('hidden');
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+}
+
+function updateUIHeader() {
+    document.getElementById('header-coin-badge').textContent = `${player.coins}錢`;
+    document.getElementById('footer-potion-count').textContent = `(${player.potions})`;
+    const ultBtn = document.getElementById('btn-skill-ult');
+    if (player.sp >= 55) ultBtn.classList.add('ult-ready-glow');
+    else ultBtn.classList.remove('ult-ready-glow');
+}
+
+function cycleDifficulty() {
+    diffIndex = (diffIndex + 1) % DIFFICULTIES.length;
+    const icons = ['🔥', '💀', '🌱'];
+    document.getElementById('btn-difficulty').textContent = `${icons[diffIndex]} 難度：${DIFFICULTIES[diffIndex].name}`;
+    spawnFloatText(player.x, player.y - 45, `切換難度：【${DIFFICULTIES[diffIndex].name}】`, '#fde047', 18);
+}
+
+function healFullForDemo() {
+    player.hp = player.maxHp;
+    player.sp = player.maxSp;
+    player.potions = Math.max(player.potions, 3);
+    playSFX('potion');
+    spawnFloatText(player.x, player.y - 45, '✨ 狀態已全滿（氣血/真氣/藥水）！', '#34d399', 18);
+    updateUIHeader();
+}
+
+function addDemoCoins() {
+    player.coins += 500;
+    playSFX('coin');
+    updateUIHeader();
+    renderShopModal();
+}
+
+function renderShopModal() {
+    document.getElementById('shop-coin-text').textContent = `💰 ${player.coins} 五銖錢 ｜ 🧪 藥水 ${player.potions} 瓶`;
+    const list = document.getElementById('shop-items-list');
+    list.innerHTML = '';
+
+    const items = [
+        {
+            title: `🧪 千年回春藥水（目前持有：${player.potions} 瓶）`,
+            desc: '西域胡萬金特調靈藥，按 [H] 鍵飲用立即恢復 50% 最大氣血與 35 點真氣',
+            cost: 100,
+            maxed: false,
+            action: () => {
+                player.coins -= 100;
+                player.potions++;
+                playSFX('potion');
+            }
+        },
+        {
+            title: `⚔️ 神兵鍛造：${WEAPON_TIERS[player.weaponLv - 1]} (Lv.${player.weaponLv}/5)`,
+            desc: player.weaponLv < 5 ? `下一階：【${WEAPON_TIERS[player.weaponLv]}】大幅提升普攻與全技能傷害` : '已達太阿天子聖劍最高境界！',
+            cost: player.weaponLv * 130,
+            maxed: player.weaponLv >= 5,
+            action: () => {
+                player.coins -= player.weaponLv * 130;
+                player.weaponLv++;
+                playSFX('coin');
+            }
+        },
+        {
+            title: `🛡️ 寶甲強化：${ARMOR_TIERS[player.armorLv - 1]} (Lv.${player.armorLv}/5)`,
+            desc: player.armorLv < 5 ? `下一階：【${ARMOR_TIERS[player.armorLv]}】最大氣血 +45、減傷提升並瞬間回滿氣血！` : '已達扶餘國主金甲最高境界！',
+            cost: player.armorLv * 120,
+            maxed: player.armorLv >= 5,
+            action: () => {
+                player.coins -= player.armorLv * 120;
+                player.armorLv++;
+                player.maxHp += 45;
+                player.hp = player.maxHp;
+                playSFX('coin');
+            }
+        },
+        {
+            title: `🔥 武學精進：風塵三俠內功 (Lv.${player.skillLv}/5)`,
+            desc: player.skillLv < 5 ? '提升真氣上限 +20 與赤龍斬、霸王裂地破招式威力' : '已達先天無上罡氣最高境界！',
+            cost: player.skillLv * 120,
+            maxed: player.skillLv >= 5,
+            action: () => {
+                player.coins -= player.skillLv * 120;
+                player.skillLv++;
+                player.maxSp += 20;
+                player.sp = player.maxSp;
+                playSFX('coin');
+            }
+        }
+    ];
+
+    items.forEach(it => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between gap-3 bg-black/60 border border-amber-800/80 rounded-xl p-3';
+        const left = document.createElement('div');
+        left.innerHTML = `<div class="text-amber-300 font-bold text-sm">${it.title}</div><div class="text-stone-400 text-xs mt-0.5">${it.desc}</div>`;
+        const btn = document.createElement('button');
+        if (it.maxed) {
+            btn.className = 'px-4 py-1.5 rounded-lg bg-stone-800 text-stone-500 text-xs font-bold cursor-not-allowed shrink-0';
+            btn.textContent = '已滿級';
+        } else {
+            const canBuy = player.coins >= it.cost;
+            btn.className = canBuy
+                ? 'btn-ancient px-4 py-1.5 rounded-lg text-xs font-black shrink-0'
+                : 'px-4 py-1.5 rounded-lg bg-stone-900 border border-stone-700 text-stone-500 text-xs font-bold cursor-not-allowed shrink-0';
+            btn.textContent = `💰 ${it.cost} 錢購買`;
+            if (canBuy) {
+                btn.onclick = () => {
+                    it.action();
+                    updateUIHeader();
+                    renderShopModal();
+                };
+            }
+        }
+        row.appendChild(left);
+        row.appendChild(btn);
+        list.appendChild(row);
+    });
+}
+
+function renderCodexModal() {
+    const grid = document.getElementById('codex-grid');
+    grid.innerHTML = '';
+    CODEX_DATA.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'bg-black/60 border border-amber-700/80 rounded-xl p-3.5';
+        card.innerHTML = `
+            <div class="flex items-center justify-between mb-1.5">
+                <span class="text-amber-300 font-bold text-sm">${item.title}</span>
+                <span class="bg-amber-950 border border-amber-500/60 text-amber-200 px-2 py-0.5 rounded text-[11px] font-bold">${item.badge}</span>
+            </div>
+            <p class="text-stone-300 text-xs leading-relaxed">${item.content}</p>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+function renderQACheatModal() {
+    const list = document.getElementById('qa-cheat-list');
+    list.innerHTML = '';
+    QA_DATABASE.forEach(qa => {
+        const card = document.createElement('div');
+        card.className = 'bg-black/60 border border-stone-700 rounded-xl p-3 flex flex-col justify-between gap-2';
+        card.innerHTML = `
+            <div>
+                <div class="flex items-center justify-between text-[11px] text-amber-400 font-bold mb-1">
+                    <span>📍 ${qa.chap}</span>
+                    <span class="bg-emerald-950 border border-emerald-500 text-emerald-300 px-2 py-0.5 rounded">正確答案：選項 [${qa.correct}]</span>
+                </div>
+                <div class="text-stone-100 font-bold text-xs mb-1">${qa.q}</div>
+                <div class="text-stone-400 text-[11px] space-y-0.5">
+                    ${qa.options.map((o, idx) => `<div class="${idx + 1 === qa.correct ? 'text-emerald-300 font-bold' : ''}">${o}</div>`).join('')}
+                </div>
+            </div>
+            <button onclick="closeModal('modal-qa-cheat'); startDialogueSequence([{type:'QA', qaId:${qa.id}}]);" class="btn-ancient w-full py-1 rounded text-[11px] font-bold">
+                ⚡ 立即在畫面彈出此題考同學
+            </button>
+        `;
+        list.appendChild(card);
+    });
+}
+
+function showVictoryModal() {
+    document.getElementById('vic-qa').textContent = `${player.qaSolved.size} / 12 題`;
+    document.getElementById('vic-thunder').textContent = `${player.thunderCount} 次`;
+    document.getElementById('vic-kills').textContent = `${player.kills} 名`;
+    let rank = '風塵奇俠';
+    if (player.qaSolved.size >= 8) rank = '扶餘國主・文武狀元';
+    else if (player.qaSolved.size >= 4) rank = '盛唐開國元勳';
+    document.getElementById('vic-rank').textContent = rank;
+    openModal('modal-victory');
+}
+
+// --- 鍵盤與滑鼠事件監聽 ---
+window.addEventListener('keydown', e => {
+    keys[e.code] = true;
+
+    if (e.code === 'KeyB') {
+        const shopEl = document.getElementById('modal-shop');
+        if (shopEl.classList.contains('hidden')) openModal('modal-shop');
+        else closeModal('modal-shop');
+        return;
+    }
+
+    if (gameState === 'DIALOGUE') {
+        const step = activeDialogueList[activeDialogueIdx];
+        if (step && step.type === 'QA') {
+            const qa = QA_DATABASE.find(q => q.id === step.qaId);
+            if (qa) {
+                if (e.code === 'Digit1' || e.code === 'Numpad1') submitQAAnswer(qa, 1);
+                if (e.code === 'Digit2' || e.code === 'Numpad2') submitQAAnswer(qa, 2);
+                if (e.code === 'Digit3' || e.code === 'Numpad3') submitQAAnswer(qa, 3);
+            }
+        } else if (step && step.type === 'MERCHANT_SHOP') {
+            if (e.code === 'Digit1' || e.code === 'Numpad1') buyPotionFromMerchant(1);
+            if (e.code === 'Digit2' || e.code === 'Numpad2') { closeDialogue(); openModal('modal-shop'); }
+            if (e.code === 'Digit3' || e.code === 'Numpad3') closeDialogue();
+        } else if (e.code === 'Space' || e.code === 'KeyE' || e.code === 'Enter') {
+            e.preventDefault();
+            advanceDialogue();
+        }
+        return;
+    }
+
+    if (e.code === 'KeyE' || e.code === 'Space') {
+        e.preventDefault();
+        triggerAction('INTERACT');
+    } else if (e.code === 'KeyJ') {
+        triggerAction('ATTACK');
+    } else if (e.code === 'KeyK') {
+        triggerAction('SKILL_K');
+    } else if (e.code === 'KeyU') {
+        triggerAction('SKILL_U');
+    } else if (e.code === 'KeyI') {
+        triggerAction('SKILL_I');
+    } else if (e.code === 'KeyL') {
+        triggerAction('DASH');
+    } else if (e.code === 'KeyH') {
+        triggerAction('POTION');
+    }
+});
+
+window.addEventListener('keyup', e => {
+    keys[e.code] = false;
+});
+
+// 滑鼠點擊畫布支援（直接點擊 NPC 對話、點擊寶箱開啟、點擊地面攻擊）
+canvas.addEventListener('mousedown', e => {
+    initAudio();
+    if (gameState !== 'PLAY') return;
+    const rect = canvas.getBoundingClientRect();
+    const cx = (e.clientX - rect.left) * (W / rect.width);
+    const cy = (e.clientY - rect.top) * (H / rect.height);
+
+    // 檢查是否點擊 NPC
+    for (let npc of npcs) {
+        if (Math.hypot(cx - npc.x, cy - (npc.y - 25)) < 48) {
+            if (npc.isMerchant) openMerchantDialogue(npc);
+            else if (npc.dialogue) startDialogueSequence(npc.dialogue);
+            return;
+        }
+    }
+    // 檢查是否點擊寶箱
+    for (let box of chests) {
+        if (!box.opened && Math.hypot(cx - box.x, cy - box.y) < 45) {
+            box.opened = true;
+            player.coins += box.coins;
+            player.potions += box.potions;
+            playSFX('coin');
+            spawnFloatText(box.x, box.y - 40, `🎁 開啟【${box.name}】+${box.coins}錢 & +${box.potions}瓶藥水！`, '#fde047', 18);
+            updateUIHeader();
+            return;
+        }
+    }
+    // 檢查是否點擊傳送門
+    if (portal && cx >= portal.x && cx <= portal.x + portal.w && cy >= portal.y && cy <= portal.y + portal.h) {
+        if (portal.target === 99) showVictoryModal();
+        else jumpToChapter(portal.target);
+        return;
+    }
+
+    // 否則朝點擊方向揮劍普攻
+    player.facing = cx >= player.x ? 1 : -1;
+    performNormalAttack();
+});
+
+// --- 主遊戲更新與渲染迴圈 (60 FPS) ---
+function gameLoop() {
+    globalTick++;
+
+    if (gameState === 'PLAY') {
+        // 1. 更新主角移動與閃避
+        if (player.invulnTimer > 0) player.invulnTimer--;
+        if (player.atkTimer > 0) player.atkTimer--;
+        if (player.dashCooldown > 0) player.dashCooldown--;
+        if (player.comboResetTimer > 0) {
+            player.comboResetTimer--;
+            if (player.comboResetTimer === 0) player.comboStep = 0;
+        }
+        // 自然回復微量真氣
+        if (player.sp < player.maxSp) player.sp = Math.min(player.maxSp, player.sp + 0.08);
+
+        if (player.dashTimer > 0) {
+            player.dashTimer--;
+            player.x += player.dashVx;
+            player.y += player.dashVy;
+            if (globalTick % 2 === 0) {
+                particles.push({ x: player.x, y: player.y - 20, vx: 0, vy: 0, r: 8, color: '#38bdf8', alpha: 0.55 });
+            }
+        } else {
+            let mx = 0, my = 0;
+            if (keys['KeyA'] || keys['ArrowLeft']) { mx -= 1; player.facing = -1; }
+            if (keys['KeyD'] || keys['ArrowRight']) { mx += 1; player.facing = 1; }
+            if (keys['KeyW'] || keys['ArrowUp']) my -= 1;
+            if (keys['KeyS'] || keys['ArrowDown']) my += 1;
+
+            if (mx !== 0 || my !== 0) {
+                const len = Math.hypot(mx, my);
+                player.x += (mx / len) * player.speed;
+                player.y += (my / len) * (player.speed * 0.82);
+                player.walkCycle += 0.24;
+                player.isMoving = true;
+            } else {
+                player.isMoving = false;
+            }
+        }
+
+        // 限制角色活動邊界
+        player.x = Math.max(45, Math.min(W - 45, player.x));
+        player.y = Math.max(235, Math.min(H - 28, player.y));
+
+        // 檢查是否踏入右側傳送門
+        if (portal && player.x > portal.x && player.x < portal.x + portal.w && player.y > portal.y && player.y < portal.y + portal.h) {
+            const activeBoss = enemies.find(e => e.isBoss);
+            if (activeBoss) {
+                spawnFloatText(player.x - 40, player.y - 45, `🔒 需先擊敗守關首領【${activeBoss.name}】！`, '#f87171', 16);
+                player.x = portal.x - 15;
+            } else if (portal.target === 99) {
+                player.x = portal.x - 25;
+                showVictoryModal();
+            } else {
+                jumpToChapter(portal.target);
+            }
+        }
+
+        // 2. 更新助戰夥伴與敵人/Boss
+        updateAllies();
+        updateEnemiesAndBoss();
+
+        // 3. 更新投射物
+        for (let i = projectiles.length - 1; i >= 0; i--) {
+            const p = projectiles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.life--;
+            if (p.life <= 0 || p.x < 0 || p.x > W || p.y < 150 || p.y > H) {
+                projectiles.splice(i, 1);
+                continue;
+            }
+            if (p.fromPlayer) {
+                enemies.forEach(en => {
+                    if (!p.hitSet.has(en) && Math.hypot(en.x - p.x, (en.y - 20) - p.y) < p.r + en.r) {
+                        p.hitSet.add(en);
+                        damageEnemy(en, p.dmg, p.poiseDmg || 20, Math.sign(p.vx) * 8);
+                    }
+                });
+            } else {
+                if (Math.hypot(player.x - p.x, (player.y - 20) - p.y) < p.r + player.r - 4) {
+                    damagePlayer(p.dmg);
+                    projectiles.splice(i, 1);
+                }
+            }
+        }
+    }
+
+    // ==================== 畫面渲染開始 ====================
+    ctx.clearRect(0, 0, W, H);
+    ctx.save();
+
+    // 螢幕震動偏移
+    if (screenShake > 0) {
+        const sx = (Math.random() - 0.5) * screenShake * 1.4;
+        const sy = (Math.random() - 0.5) * screenShake * 1.4;
+        ctx.translate(sx, sy);
+        screenShake = Math.max(0, screenShake * 0.85 - 0.3);
+    }
+
+    // 1. 繪製章節背景地圖
+    drawBackgroundScene(currentChapter);
+
+    // 2. 繪製 Boss 紅區預警 (在地面層之上、人物之下)
+    enemies.forEach(en => {
+        if (en.isBoss && en.telegraph) {
+            const tel = en.telegraph;
+            const prog = tel.timer / tel.maxTimer;
+            ctx.save();
+            if (tel.type === 'CHARGE') {
+                ctx.translate(tel.x, tel.y);
+                ctx.rotate(tel.angle);
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
+                ctx.fillRect(0, -tel.w / 2, tel.len, tel.w);
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.55)';
+                ctx.fillRect(0, -tel.w / 2, tel.len * prog, tel.w);
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(0, -tel.w / 2, tel.len, tel.w);
+            } else if (tel.type === 'THUNDER_CIRCLES') {
+                tel.circles.forEach(c => {
+                    ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
+                    ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'rgba(250, 204, 21, 0.5)';
+                    ctx.beginPath(); ctx.arc(c.x, c.y, c.r * prog, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = '#ef4444';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2); ctx.stroke();
+                });
+            } else if (tel.type === 'WHIRLWIND') {
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.24)';
+                ctx.beginPath(); ctx.arc(tel.x, tel.y, tel.r, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.5)';
+                ctx.beginPath(); ctx.arc(tel.x, tel.y, tel.r * prog, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#f87171';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath(); ctx.arc(tel.x, tel.y, tel.r, 0, Math.PI * 2); ctx.stroke();
+            } else if (tel.type === 'FAN_WAVE') {
+                ctx.fillStyle = 'rgba(192, 132, 252, 0.28)';
+                ctx.beginPath();
+                ctx.moveTo(tel.x, tel.y);
+                ctx.arc(tel.x, tel.y, 175, tel.angle - 0.5, tel.angle + 0.5);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+    });
+
+    // 3. 繪製寶箱
+    chests.forEach(box => {
+        ctx.save();
+        ctx.translate(box.x, box.y);
+        ctx.fillStyle = box.opened ? '#57534e' : '#b45309';
+        ctx.strokeStyle = '#fde047';
+        ctx.lineWidth = 2;
+        ctx.fillRect(-18, -14, 36, 24);
+        ctx.strokeRect(-18, -14, 36, 24);
+        ctx.fillStyle = '#fde047';
+        ctx.font = 'bold 11px serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(box.opened ? '已開啟' : box.name, 0, -20);
+        ctx.restore();
+    });
+
+    // 4. 依 Y 座標排序繪製所有角色 (NPC、夥伴、敵人、主角)，呈現立體前後遮擋感
+    const renderList = [];
+    npcs.forEach(n => renderList.push({ kind: 'NPC', y: n.y, obj: n }));
+    allies.forEach(a => renderList.push({ kind: 'ALLY', y: a.y, obj: a }));
+    enemies.forEach(e => renderList.push({ kind: 'ENEMY', y: e.y, obj: e }));
+    renderList.push({ kind: 'PLAYER', y: player.y, obj: player });
+
+    renderList.sort((a, b) => a.y - b.y);
+
+    renderList.forEach(item => {
+        if (item.kind === 'NPC') {
+            const n = item.obj;
+            drawAncientCharacter(ctx, n.x, n.y, n.role, 1, 0, false, 0, 1.05, false);
+            // 頭頂名牌與互動提示
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(12, 8, 5, 0.85)';
+            ctx.strokeStyle = n.isMerchant ? '#10b981' : '#f59e0b';
+            ctx.lineWidth = 1.5;
+            ctx.fillRect(n.x - 74, n.y - 96, 148, 28);
+            ctx.strokeRect(n.x - 74, n.y - 96, 148, 28);
+            ctx.fillStyle = n.isMerchant ? '#34d399' : '#fde047';
+            ctx.font = 'bold 11px "Noto Serif TC", serif';
+            ctx.fillText(n.name, n.x, n.y - 83);
+            ctx.fillStyle = '#e7e5e4';
+            ctx.font = '10px sans-serif';
+            ctx.fillText(n.title, n.x, n.y - 71);
+            ctx.restore();
+
+        } else if (item.kind === 'ALLY') {
+            const al = item.obj;
+            drawAncientCharacter(ctx, al.x, al.y, al.role, 1, globalTick * 0.15, false, 0, 1.0, false);
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 11px sans-serif';
+            ctx.fillText(al.name, al.x, al.y - 70);
+            ctx.restore();
+
+        } else if (item.kind === 'ENEMY') {
+            const en = item.obj;
+            const sc = en.isBoss ? 1.38 : 1.0;
+
+            // Boss 二階段狂暴紅金氣場
+            if (en.isBoss && en.enraged) {
+                ctx.save();
+                ctx.strokeStyle = 'rgba(239, 68, 68, 0.7)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(en.x, en.y - 28, 42 + Math.sin(globalTick * 0.2) * 5, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            drawAncientCharacter(ctx, en.x, en.y, en.type, en.facing, en.walkCycle, false, 0, sc, false);
+
+            // 頭頂小血條與名稱
+            ctx.save();
+            ctx.textAlign = 'center';
+            const topY = en.isBoss ? en.y - 102 : en.y - 74;
+            ctx.fillStyle = en.isBoss ? '#fde047' : '#fca5a5';
+            ctx.font = 'bold 11px sans-serif';
+            ctx.fillText(en.name, en.x, topY - 6);
+
+            if (en.type !== 'DUMMY') {
+                ctx.fillStyle = '#1c1917';
+                ctx.fillRect(en.x - 28, topY, 56, 6);
+                ctx.fillStyle = en.isBoss ? '#f97316' : '#ef4444';
+                ctx.fillRect(en.x - 28, topY, 56 * Math.max(0, en.hp / en.maxHp), 6);
+            }
+            if (en.stunnedTimer > 0) {
+                ctx.fillStyle = '#fde047';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.fillText('💫 破防虛弱 (1.8x傷害)', en.x, topY - 20);
+            } else if (en.telegraph) {
+                ctx.fillStyle = '#f87171';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.fillText(en.telegraph.label, en.x, topY - 20);
+            }
+            ctx.restore();
+
+        } else if (item.kind === 'PLAYER') {
+            const isAtk = player.atkTimer > 0;
+            const atkProg = isAtk ? (16 - player.atkTimer) / 16 : 0;
+            drawAncientCharacter(ctx, player.x, player.y, 'PLAYER', player.facing, player.walkCycle, isAtk, atkProg, 1.08, false);
+        }
+    });
+
+    // 5. 繪製劍氣與投射物
+    projectiles.forEach(p => {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(Math.atan2(p.vy, p.vx));
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(0, 0, p.r, -0.9, 0.9);
+        ctx.lineTo(-8, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    });
+
+    // 6. 繪製擴散震波圈與粒子
+    for (let i = shockwaves.length - 1; i >= 0; i--) {
+        const sw = shockwaves[i];
+        sw.r += (sw.maxR - sw.r) * 0.2;
+        sw.alpha -= 0.045;
+        if (sw.alpha <= 0) {
+            shockwaves.splice(i, 1);
+            continue;
+        }
+        ctx.save();
+        ctx.strokeStyle = sw.color;
+        ctx.globalAlpha = Math.max(0, sw.alpha);
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const pt = particles[i];
+        pt.x += pt.vx;
+        pt.y += pt.vy;
+        pt.alpha -= 0.04;
+        if (pt.alpha <= 0) {
+            particles.splice(i, 1);
+            continue;
+        }
+        ctx.save();
+        ctx.fillStyle = pt.color;
+        ctx.globalAlpha = Math.max(0, pt.alpha);
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, pt.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+
+    // 7. 繪製答錯題天雷閃電特效
+    if (lightningBolt) {
+        lightningBolt.timer--;
+        ctx.save();
+        ctx.strokeStyle = '#e0f2fe';
+        ctx.shadowColor = '#38bdf8';
+        ctx.shadowBlur = 20;
+        ctx.lineWidth = 7;
+        ctx.beginPath();
+        let lx = lightningBolt.x;
+        let ly = 0;
+        ctx.moveTo(lx, ly);
+        while (ly < lightningBolt.y) {
+            lx += (Math.random() - 0.5) * 65;
+            ly += 35;
+            ctx.lineTo(lx, ly);
+        }
+        ctx.stroke();
+        ctx.restore();
+        if (lightningBolt.timer <= 0) lightningBolt = null;
+    }
+
+    // 8. 繪製浮動戰鬥與提示文字
+    for (let i = floatTexts.length - 1; i >= 0; i--) {
+        const ft = floatTexts[i];
+        ft.y += ft.vy;
+        ft.alpha -= 0.018;
+        if (ft.alpha <= 0) {
+            floatTexts.splice(i, 1);
+            continue;
+        }
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, ft.alpha);
+        ctx.font = `bold ${ft.size}px "Noto Serif TC", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 3.5;
+        ctx.strokeText(ft.text, ft.x, ft.y);
+        ctx.fillStyle = ft.color;
+        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.restore();
+    }
+
+    // 9. 繪製 HUD 與置頂雙層 Boss 血條
+    drawGameHUD();
+
+    // 10. 全畫面受擊紅光或大招金光閃爍
+    if (flashAlpha > 0 && flashColor) {
+        ctx.save();
+        ctx.fillStyle = flashColor;
+        ctx.globalAlpha = flashAlpha;
+        ctx.fillRect(0, 0, W, H);
+        ctx.restore();
+        flashAlpha = Math.max(0, flashAlpha - 0.04);
+    }
+
+    ctx.restore();
+    requestAnimationFrame(gameLoop);
+}
+
+// 啟動初始化
+initCustomImagePanel();
+loadChapter(0);
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>

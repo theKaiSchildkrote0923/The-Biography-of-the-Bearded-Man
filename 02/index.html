@@ -1,0 +1,3191 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>《虯髯客傳：風塵三俠》完整五章史詩版 - 國文課互動RPG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&display=swap');
+
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #080605;
+            color: #f5e6d3;
+            font-family: 'Noto Serif TC', 'PMingLiU', '微軟正黑體', serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+        }
+        #app-shell {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 1260px;
+            max-height: 800px;
+            display: flex;
+            flex-direction: column;
+            background: #120c09;
+            border: 3px solid #78552b;
+            border-radius: 12px;
+            box-shadow: 0 0 65px rgba(0, 0, 0, 0.95), 0 0 24px rgba(212, 175, 55, 0.25);
+            overflow: hidden;
+        }
+        #top-nav {
+            height: 48px;
+            background: linear-gradient(90deg, #1a100a 0%, #2e1d12 50%, #1a100a 100%);
+            border-bottom: 2px solid #926634;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            z-index: 20;
+            flex-shrink: 0;
+        }
+        #canvas-container {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            overflow: hidden;
+            background: #0d0907;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            outline: none;
+        }
+        .gold-panel {
+            background: linear-gradient(180deg, #211610 0%, #110b08 100%);
+            border: 2px solid #d4af37;
+            box-shadow: inset 0 0 24px rgba(212, 175, 55, 0.16), 0 15px 40px rgba(0,0,0,0.92);
+        }
+        .btn-epic {
+            background: linear-gradient(180deg, #991b1b 0%, #570c0c 100%);
+            border: 2px solid #fbbf24;
+            color: #fef08a;
+            transition: all 0.18s ease;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+        }
+        .btn-epic:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(180deg, #b91c1c 0%, #7f1d1d 100%);
+            box-shadow: 0 0 18px rgba(251, 191, 36, 0.65);
+        }
+        .btn-chap {
+            padding: 4px 10px;
+            font-size: 12px;
+            border-radius: 6px;
+            border: 1px solid #78552b;
+            background: #241811;
+            color: #d6c5b3;
+            transition: all 0.15s;
+            cursor: pointer;
+        }
+        .btn-chap:hover {
+            border-color: #fbbf24;
+            color: #fef08a;
+            background: #3b2618;
+        }
+        .btn-chap.active {
+            background: linear-gradient(180deg, #92400e 0%, #451a03 100%);
+            border-color: #fde047;
+            color: #fef08a;
+            font-weight: 700;
+            box-shadow: 0 0 10px rgba(250, 204, 21, 0.45);
+        }
+        .skill-btn {
+            background: rgba(24, 17, 13, 0.92);
+            border: 1.5px solid #92400e;
+            border-radius: 8px;
+            padding: 5px 10px;
+            color: #fde68a;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .skill-btn:hover {
+            border-color: #fbbf24;
+            background: rgba(69, 26, 3, 0.95);
+            transform: translateY(-2px);
+        }
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #140e0a;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #78552b;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-shell">
+    <!-- 頂部章節導覽列與系統功能按鈕 -->
+    <div id="top-nav">
+        <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="text-amber-400 font-black text-sm mr-1 tracking-wider hidden sm:inline">📜 章節切換：</span>
+            <button class="btn-chap active" data-chap="0">一・長安夜奔</button>
+            <button class="btn-chap" data-chap="1">二・靈石客棧</button>
+            <button class="btn-chap" data-chap="2">三・汾河古道</button>
+            <button class="btn-chap" data-chap="3">四・太原弈棋</button>
+            <button class="btn-chap" data-chap="4">五・洛陽贈財</button>
+        </div>
+        <div class="flex items-center gap-2">
+            <button id="btn-open-forge" class="px-2.5 py-1 rounded bg-amber-950/90 border border-amber-500/80 text-amber-200 text-xs font-bold hover:bg-amber-800 transition cursor-pointer">
+                ⚒️ 鍛造養成 <span id="nav-coin-badge" class="text-yellow-300 ml-0.5">(60錢)</span>
+            </button>
+            <button id="btn-open-lore" class="px-2.5 py-1 rounded bg-sky-950/90 border border-sky-400/80 text-sky-200 text-xs font-bold hover:bg-sky-800 transition cursor-pointer">
+                📘 國文圖鑑 <span id="nav-lore-badge" class="text-sky-300 ml-0.5">(1/12)</span>
+            </button>
+            <button id="btn-open-score" class="px-2.5 py-1 rounded bg-emerald-950/90 border border-emerald-500/80 text-emerald-200 text-xs font-bold hover:bg-emerald-800 transition cursor-pointer">
+                🏆 報告總結
+            </button>
+            <button id="btn-open-help" class="px-2 py-1 rounded bg-stone-800 border border-stone-500 text-stone-200 text-xs hover:bg-stone-700 transition cursor-pointer">
+                ❓ 說明
+            </button>
+        </div>
+    </div>
+
+    <!-- 遊戲主畫布與互動浮層 -->
+    <div id="canvas-container">
+        <canvas id="gameCanvas" tabindex="0"></canvas>
+
+        <!-- 底部可點擊快捷技能與互動列 -->
+        <div class="absolute bottom-2.5 right-3 z-10 flex items-center gap-1.5 flex-wrap pointer-events-auto">
+            <button class="skill-btn" id="ui-btn-interact" title="靠近NPC或物件時互動">
+                <span class="px-1.5 py-0.5 bg-emerald-900 text-emerald-200 rounded font-mono text-xs">E/空白</span> 調查/對話
+            </button>
+            <button class="skill-btn" id="ui-btn-atk">
+                <span class="px-1.5 py-0.5 bg-stone-800 text-amber-300 rounded font-mono text-xs">J</span> 三段連斬
+            </button>
+            <button class="skill-btn" id="ui-btn-dragon">
+                <span class="px-1.5 py-0.5 bg-red-950 text-red-300 rounded font-mono text-xs">K</span> 赤龍斬(20氣)
+            </button>
+            <button class="skill-btn" id="ui-btn-quake">
+                <span class="px-1.5 py-0.5 bg-amber-950 text-amber-300 rounded font-mono text-xs">U</span> 裂地破(25氣)
+            </button>
+            <button class="skill-btn" id="ui-btn-ult">
+                <span class="px-1.5 py-0.5 bg-purple-950 text-purple-300 rounded font-mono text-xs">I</span> 三俠合擊(40氣)
+            </button>
+            <button class="skill-btn" id="ui-btn-dash">
+                <span class="px-1.5 py-0.5 bg-sky-950 text-sky-300 rounded font-mono text-xs">L</span> 疾風步(12氣)
+            </button>
+        </div>
+
+        <!-- 1. 遊戲啟動與操作說明視窗 -->
+        <div id="modal-start" class="absolute inset-0 z-30 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="max-w-3xl w-full gold-panel rounded-xl p-6 md:p-7 text-center relative">
+                <div class="inline-block px-3 py-1 rounded-full bg-red-950 border border-amber-500/70 text-amber-300 text-xs tracking-widest mb-2">
+                    唐傳奇經典・杜光庭《虯髯客傳》高畫質五章史詩版
+                </div>
+                <h1 class="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 tracking-wider mb-2">
+                    虯髯客傳：風塵三俠
+                </h1>
+                <p class="text-stone-300 text-xs md:text-sm leading-relaxed mb-4">
+                    全新精細古風角色建模與對話半身立繪！完整體驗「紅拂夜奔」、「靈石客棧刷馬與烤肉結義」、<br class="hidden md:inline">
+                    「汾河古道三俠並肩作戰」、「太原弈棋見真龍（此局全輸矣）」到「洛陽二十床家財傾囊相授」！
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-left bg-black/55 p-4 rounded-lg border border-amber-900/60 mb-5 text-xs">
+                    <div class="space-y-1.5">
+                        <div class="text-amber-400 font-bold border-b border-stone-700 pb-1">🎮 移動與四大武學</div>
+                        <div><span class="text-amber-200 font-mono">[W][A][S][D]</span> 角色八方移動</div>
+                        <div><span class="text-amber-200 font-mono">[J]</span> 三段連擊（第三擊大旋風）</div>
+                        <div><span class="text-amber-200 font-mono">[K]</span> 赤龍斬（直線貫穿火龍波）</div>
+                        <div><span class="text-amber-200 font-mono">[U]</span> 霸王裂地破（範圍震暈破防）</div>
+                        <div><span class="text-amber-200 font-mono">[I]</span> 風塵三俠合擊（全場劍雨風暴）</div>
+                        <div><span class="text-amber-200 font-mono">[L]</span> 疾風步（殘影無敵閃避紅圈）</div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <div class="text-sky-400 font-bold border-b border-stone-700 pb-1">🔥 深度劇情與場景互動</div>
+                        <div><span class="text-sky-200 font-mono">[E] 或 滑鼠點擊</span> 調查物件 / 對話</div>
+                        <div>• <b>長安暗巷</b>：見證紅拂紫衣夜叩李靖門</div>
+                        <div>• <b>靈石客棧</b>：刷馬息怒、扇風烤肉、查驗革囊</div>
+                        <div>• <b>汾河古道</b>：破解三座石碑開啟黃金秘寶箱</div>
+                        <div>• <b>太原行館</b>：操作棋盤觸發李世民真龍登場</div>
+                        <div>• <b>洛陽豪宅</b>：清點二十床家財、挑戰八陣圖</div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <div class="text-emerald-400 font-bold border-b border-stone-700 pb-1">🎓 國文報告展示神器</div>
+                        <div><span class="text-emerald-200 font-mono">[1][2][3] 或 點擊</span> 回答隨堂考題</div>
+                        <div>• <b>隨機選項分佈</b>：答案平均分佈於 1、2、3 並附完整課文詳解！</div>
+                        <div>• <b>頂部章節列</b>：可順玩 20 分鐘，或上台報告時<b>一鍵切換任意章節</b>！</div>
+                        <div>• <b>國文圖鑑(12篇)</b>：支援課堂一鍵全解鎖！</div>
+                    </div>
+                </div>
+
+                <button id="btn-start-play" class="btn-epic px-10 py-3 rounded-lg text-lg font-bold tracking-widest cursor-pointer">
+                    ⚔️ 點擊開始遊戲（進入第一章：西京長安）
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. 鍛造與角色養成視窗 -->
+        <div id="modal-forge" class="hidden absolute inset-0 z-30 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="max-w-2xl w-full gold-panel rounded-xl p-6 relative">
+                <div class="flex justify-between items-center border-b border-amber-700/60 pb-3 mb-4">
+                    <div>
+                        <h2 class="text-2xl font-black text-amber-400">⚒️ 虯髯客行囊・神兵鍛造與內功修煉</h2>
+                        <p class="text-xs text-stone-400">擊敗敵人、打破木箱酒罈或答對國文考題可獲得「五銖錢」強化戰力與造型</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-stone-400">持有五銖錢</div>
+                        <div id="forge-coin-display" class="text-2xl font-black text-yellow-400">💰 60</div>
+                    </div>
+                </div>
+
+                <div id="forge-items-container" class="space-y-3 mb-5"></div>
+
+                <div class="flex justify-between items-center pt-2 border-t border-stone-800">
+                    <button id="btn-forge-cheat" class="px-3 py-1.5 rounded bg-stone-800 border border-amber-600/50 text-amber-300 text-xs hover:bg-stone-700 cursor-pointer">
+                        🎁 報告展示津貼 (+300 五銖錢)
+                    </button>
+                    <button id="btn-close-forge" class="btn-epic px-6 py-2 rounded-lg font-bold text-sm cursor-pointer">
+                        返回遊戲
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 《虯髯客傳》12篇國文考據圖鑑視窗 -->
+        <div id="modal-lore" class="hidden absolute inset-0 z-30 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="max-w-4xl w-full h-[88%] gold-panel rounded-xl p-5 flex flex-col">
+                <div class="flex flex-wrap justify-between items-center border-b border-amber-700/60 pb-3 mb-3 gap-2">
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-black text-amber-400">📘 《虯髯客傳》國文課重點考據圖鑑</h2>
+                        <p class="text-xs text-stone-300">探索場景與人物對話即可解鎖；上台報告時亦可點擊右側「一鍵全解鎖」直接展示講解！</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="btn-unlock-all-lore" class="px-3 py-1.5 rounded bg-sky-900 border border-sky-400 text-sky-100 text-xs font-bold hover:bg-sky-700 cursor-pointer">
+                            🔓 課堂報告一鍵全解鎖
+                        </button>
+                        <button id="btn-close-lore" class="btn-epic px-5 py-1.5 rounded-lg font-bold text-sm cursor-pointer">
+                            關閉圖鑑
+                        </button>
+                    </div>
+                </div>
+
+                <div id="lore-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto custom-scroll pr-1 flex-1"></div>
+            </div>
+        </div>
+
+        <!-- 4. 結局與國文課報告總結成績單視窗 -->
+        <div id="modal-ending" class="hidden absolute inset-0 z-30 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="max-w-3xl w-full gold-panel rounded-xl p-6 text-center">
+                <div class="text-amber-400 text-xs font-bold tracking-widest mb-1">🚢 貞觀十年・東南瀝酒拜賀 🚢</div>
+                <h2 class="text-3xl md:text-4xl font-black text-yellow-400 mb-3">十萬檣帆入扶餘・風塵三俠傳千古</h2>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 bg-black/60 p-3.5 rounded-lg border border-amber-700/50 mb-4 text-center">
+                    <div>
+                        <div class="text-xs text-stone-400">國文考題答對</div>
+                        <div id="score-qa" class="text-xl font-black text-emerald-400">0 / 12</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-stone-400">考據圖鑑解鎖</div>
+                        <div id="score-lore" class="text-xl font-black text-sky-400">1 / 12</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-stone-400">討伐隋軍與首領</div>
+                        <div id="score-kills" class="text-xl font-black text-red-400">0</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-stone-400">神兵修為評級</div>
+                        <div id="score-rank" class="text-xl font-black text-yellow-300">豪俠初成</div>
+                    </div>
+                </div>
+
+                <div class="bg-black/55 border border-stone-700 rounded-lg p-4 text-left text-stone-200 text-xs md:text-sm space-y-2 leading-relaxed mb-5">
+                    <p>🌟 <strong class="text-amber-300">【真命天子與知命讓賢】</strong>：虯髯客本欲於隋末亂世爭奪天下，然於太原見<span class="text-yellow-300">李世民</span>「神氣揚揚，貌與常異」，又聽道士斷言「此局全輸矣」，體認到「真人之興，非英雄所冀」，毅然放棄爭奪中原，免去蒼生戰火。</p>
+                    <p>🎁 <strong class="text-amber-300">【洛陽傾囊助創盛唐】</strong>：虯髯客於洛陽將二十床奇珍異寶、豪宅與兵法文簿全數贈予<span class="text-sky-300">李靖</span>與<span class="text-rose-300">紅拂女</span>，助李靖輔佐李世民平定天下、位極人臣（衛國公）。</p>
+                    <p>🌊 <strong class="text-amber-300">【海外開創扶餘帝業】</strong>：貞觀十年，南蠻奏報「有海船千艘，甲兵十萬，入扶餘國，殺其主自立」。李靖知是虯髯客成功大業，遂與紅拂女具衣向東南瀝酒祝賀！展現唐代豪俠「拿得起、放得下，於海外另闢天地」的恢弘胸襟。</p>
+                </div>
+
+                <div class="flex justify-center gap-4">
+                    <button id="btn-close-ending" class="px-6 py-2.5 rounded-lg bg-stone-800 border border-amber-500 text-amber-200 hover:bg-stone-700 font-bold text-sm cursor-pointer">
+                        🚶 返回場景繼續探索
+                    </button>
+                    <button id="btn-open-lore-from-end" class="btn-epic px-6 py-2.5 rounded-lg font-bold text-sm cursor-pointer">
+                        📘 檢視 12 篇國文重點圖鑑
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * 《虯髯客傳：風塵三俠》完整五章史詩版 (高畫質建模 + 半身立繪 + 隨機選項分佈 + 深度原著劇情)
+ */
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const LOGICAL_W = 1140;
+const LOGICAL_H = 660;
+let dpr = window.devicePixelRatio || 1;
+
+function resizeCanvas() {
+    dpr = window.devicePixelRatio || 1;
+    canvas.width = LOGICAL_W * dpr;
+    canvas.height = LOGICAL_H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// --- 12 篇《虯髯客傳》國文考據圖鑑資料庫 ---
+const LORE_ENTRIES = [
+    {
+        id: 1,
+        title: "壹、作者杜光庭與唐傳奇文體",
+        tag: "文體與作者",
+        unlocked: true,
+        content: "《虯髯客傳》作者為唐末五代道士杜光庭。體裁屬於「唐傳奇」（文言短篇小說），由六朝「志怪」演進為唐代刻意描寫人情世態的「傳奇」。本文屬「豪俠類」代表作，兼具歷史與奇幻色彩。"
+    },
+    {
+        id: 2,
+        title: "貳、時代背景：隋末亂世與楊素弄權",
+        tag: "歷史背景",
+        unlocked: false,
+        content: "故事設於隋煬帝大業年間。司空越國公楊素位極人臣卻驕奢淫逸，接見賓客時「踞床而見」，被紅拂女看破不過是「屍居餘氣」。李靖以布衣獻策遭冷落，反映隋朝統治腐敗、天下即將易主。"
+    },
+    {
+        id: 3,
+        title: "參、紅拂夜奔：紫衣叩門與託付喬木",
+        tag: "人物賞析",
+        unlocked: false,
+        content: "張出塵（紅拂女）原為楊素府中手執紅拂塵的侍妓。她識出李靖乃亂世英雄，當夜穿紫衣戴帽叩李靖客棧之門，以「絲蘿非獨生，願託喬木」表達託付終身之意，展現唐代女性自主果敢的非凡膽識。"
+    },
+    {
+        id: 4,
+        title: "肆、靈石客棧：刷馬息怒與認兄化險",
+        tag: "經典情節",
+        unlocked: false,
+        content: "紅拂女於靈石客棧「臨軒梳頭」，虯髯客乘蹇驢至，取枕斜臥看她梳頭。李靖「怒甚，未決，猶刷馬」，紅拂女卻看出來者奇異，一手握髮、一手在背後搖手止住李靖怒氣，並機智認同姓之虯髯客為三兄，化干戈為結義！"
+    },
+    {
+        id: 5,
+        title: "伍、取心肝下酒與風塵三俠烘托法",
+        tag: "寫作技巧",
+        unlocked: false,
+        content: "虯髯客開革囊取仇人首級與心肝，以匕首切心肝與李靖共食，又啖爐中熟肉。全文運用「烘托法」：以腐朽的楊素反襯紅拂女之智；以紅拂女襯托李靖之才；再以李靖夫婦襯托虯髯客之豪；最終以三俠共同烘托真命天子李世民！"
+    },
+    {
+        id: 6,
+        title: "陸、太原弈棋：「此局全輸矣」雙關藝術",
+        tag: "修辭考點",
+        unlocked: false,
+        content: "東嶽道士與劉文靜於太原對弈，旨在觀察李世民。當李世民登場時，道士慘然斂棋曰：「此局全輸矣！於此失卻局，奇哉！救無路矣！」表面說圍棋輸了，實則雙關虯髯客「爭奪天下之局」已因真命天子出現而徹底落敗。"
+    },
+    {
+        id: 7,
+        title: "柒、李世民出場：不衫不履的真龍氣象",
+        tag: "人物描寫",
+        unlocked: false,
+        content: "文中描寫年僅二十的李世民「不衫不履，裼裘而來，神氣揚揚，貌與常異」。不靠華麗衣冠襯托卻自帶帝王威儀，令虯髯客「默居末坐，見之心死」，運用側面描寫展現天命所歸的氣場。"
+    },
+    {
+        id: 8,
+        title: "捌、三次看相與望氣：結構轉折關鍵",
+        tag: "結構分析",
+        unlocked: false,
+        content: "文中透過三次看相推進高潮：①虯髯客聞太原有奇人，欲往觀之；②劉文靜引見李世民，虯髯客一見心死（初驗：「吾見之，十得八九」）；③道士再見李世民並望氣，斷言「此世界非公世界」（複驗），促使虯髯客徹底讓賢。"
+    },
+    {
+        id: 9,
+        title: "玖、洛陽傾囊相授：拿得起放得下的胸襟",
+        tag: "人物精神",
+        unlocked: false,
+        content: "虯髯客與妻子邀李靖夫婦至洛陽豪宅，將二十床奇珍異寶、宅第奴僕與兵法文簿全數贈予李靖，助其輔佐李世民建功立業。展現豪俠「得之不喜、失之不憂、成人之美」的豁達氣度。"
+    },
+    {
+        id: 10,
+        title: "拾、十萬檣帆入扶餘：結局意涵",
+        tag: "主題延伸",
+        unlocked: false,
+        content: "貞觀十年，虯髯客率千艘海船、十萬甲兵入扶餘國自立為王。此結局打破「成王敗寇」傳統悲劇，說明真英雄即便不爭中原，亦能憑自身才幹於海外開創一番帝業。"
+    },
+    {
+        id: 11,
+        title: "拾壹、必考字音字形與重要注釋",
+        tag: "大考必背",
+        unlocked: false,
+        content: "【字音】①「虯」髯：ㄑㄧㄡˊ（捲曲貌） ②「裼」裘：ㄒㄧ（袒露上衣） ③「檣」帆：ㄑㄧㄤˊ（船桅） ④「瀝」酒：ㄌㄧˋ（灑酒祭祝） ⑤「蹇」驢：ㄐㄧㄢˇ（跛腳劣驢） ⑥長「鬢」：ㄅㄧㄣˋ。【字義】「逆旅」：客棧。"
+    },
+    {
+        id: 12,
+        title: "拾貳、核心主旨：「天命論」與「英雄觀」",
+        tag: "核心主旨",
+        unlocked: false,
+        content: "杜光庭寫作於唐末藩鎮割據之際，藉由「真人之興，非英雄所冀，況非英雄乎？人臣之謬思亂者，乃螳臂拒輪耳」宣揚唐室受命於天，勸誡藩鎮勿妄動干戈，同時寄託對盛唐開國氣象與豪俠精神的追慕。"
+    }
+];
+
+function unlockLore(id) {
+    const item = LORE_ENTRIES.find(e => e.id === id);
+    if (item && !item.unlocked) {
+        item.unlocked = true;
+        spawnFloatingText(player.x, player.y - 60, `📘 解鎖圖鑑：${item.title.split('、')[1] || item.title}`, "#38bdf8", 18);
+        updateNavBadges();
+    }
+}
+
+// --- 全域狀態與統計 ---
+const STATE = {
+    PLAY: 0,
+    DIALOGUE: 1,
+    TRANSITION: 2
+};
+let gameState = STATE.PLAY;
+let globalTime = 0;
+let screenShake = 0;
+let currentChapterIdx = 0;
+
+let transitionAlpha = 0;
+let transitionPhase = 0;
+let nextChapterTarget = null;
+let bannerTimer = 150;
+let bannerTitle = "第一章【西京長安・紅拂夜奔】";
+let bannerSub = "隋大業年間・楊素弄權・紫衣叩門識英雄";
+
+let stats = {
+    qaSolvedSet: new Set(),
+    totalQACount: 12,
+    enemiesDefeated: 0
+};
+
+const upgrades = {
+    weaponLv: 1,
+    armorLv: 1,
+    qiLv: 1
+};
+const WEAPON_NAMES = ["", "青銅短匕", "虎頭斬馬刀", "赤龍巨闕劍", "太阿天子聖劍"];
+const ARMOR_NAMES = ["", "江湖勁裝", "犀皮戰甲", "玄鐵明光鎧", "扶餘國主金甲"];
+const QI_NAMES = ["", "初窺門徑", "爐火純青", "周天貫通", "霸王先天罡氣"];
+
+const storyFlags = {
+    ch1BagRetrieved: false,
+    ch2DonkeyFed: false,
+    ch2MeatCookedCount: 0,
+    ch2BagInspected: false,
+    ch2MirrorChecked: false,
+    ch2TaoistArray: false,
+    ch2HongfuBuff: false,
+    ch2LijingBuff: false,
+    ch3TabletsSolved: [false, false, false],
+    ch3GoldChestOpened: false,
+    ch4LiuSpoken: false,
+    ch4ChessPlayed: false,
+    ch4ShiminSpawned: false,
+    ch5ChestsOpened: 0,
+    ch5TrialStarted: false
+};
+
+// --- 離屏高精細背景渲染 (5 大章節建築與光影) ---
+const chapterCanvases = [];
+
+function buildAllChapterBackgrounds() {
+    for (let c = 0; c < 5; c++) {
+        const off = document.createElement('canvas');
+        off.width = LOGICAL_W;
+        off.height = LOGICAL_H;
+        const octx = off.getContext('2d');
+
+        if (c === 0) {
+            // 第一章：西京長安・朱雀暗巷與李靖逆旅 (青石板磚紋、青苔、飛簷坊牆、燈籠暖光)
+            octx.fillStyle = '#181c22';
+            octx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+            const tw = 76, th = 46;
+            for (let y = 104; y < LOGICAL_H; y += th) {
+                let offX = ((y / th) % 2) * (tw / 2);
+                for (let x = -tw; x < LOGICAL_W; x += tw) {
+                    let s = ((x * 7 + y * 13) % 14) - 7;
+                    octx.fillStyle = `rgb(${36 + s}, ${42 + s}, ${50 + s})`;
+                    octx.fillRect(x + offX + 2, y + 2, tw - 4, th - 4);
+                    // 石板高光與青苔點綴
+                    octx.fillStyle = 'rgba(255,255,255,0.03)';
+                    octx.fillRect(x + offX + 3, y + 3, tw - 8, 4);
+                    if ((x + y) % 11 === 0) {
+                        octx.fillStyle = 'rgba(34, 84, 61, 0.28)';
+                        octx.beginPath();
+                        octx.arc(x + offX + 18, y + 18, 8, 0, Math.PI * 2);
+                        octx.fill();
+                    }
+                }
+            }
+            // 北側長安坊牆與青瓦屋簷
+            octx.fillStyle = '#13161c';
+            octx.fillRect(0, 0, LOGICAL_W, 106);
+            for (let x = 0; x < LOGICAL_W; x += 28) {
+                octx.fillStyle = (x % 56 === 0) ? '#262d38' : '#1e242d';
+                octx.beginPath();
+                octx.arc(x + 14, 24, 14, 0, Math.PI);
+                octx.fill();
+            }
+            // 左側李靖所居逆旅木門
+            octx.fillStyle = '#451a03';
+            octx.fillRect(85, 26, 110, 80);
+            octx.strokeStyle = '#92400e';
+            octx.lineWidth = 3;
+            octx.strokeRect(85, 26, 110, 80);
+
+            // 中央權貴宇文惡霸朱紅大門
+            octx.fillStyle = '#6b1212';
+            octx.fillRect(510, 22, 175, 84);
+            octx.strokeStyle = '#d4af37';
+            octx.lineWidth = 3;
+            octx.strokeRect(510, 22, 175, 84);
+            octx.fillStyle = '#fbbf24';
+            for (let r = 0; r < 3; r++) {
+                for (let col = 0; col < 4; col++) {
+                    octx.beginPath();
+                    octx.arc(538 + col * 38, 42 + r * 20, 3, 0, Math.PI * 2);
+                    octx.fill();
+                }
+            }
+
+        } else if (c === 1) {
+            // 第二章：靈石客棧 (細膩木紋地板、門外栓驢黃土庭院、雕花窗櫺斜射晨光、波斯織錦地毯)
+            octx.fillStyle = '#382113';
+            octx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+            const pw = 128, ph = 30;
+            for (let y = 104; y < LOGICAL_H; y += ph) {
+                let offX = ((y / ph) % 2) * (pw / 2);
+                for (let x = 185; x < LOGICAL_W; x += pw) {
+                    let s = ((x * 5 + y * 11) % 14) - 7;
+                    octx.fillStyle = `rgb(${70 + s}, ${44 + s}, ${27 + s})`;
+                    octx.fillRect(x + offX + 1, y + 1, pw - 2, ph - 2);
+                    // 木紋細線與鐵釘
+                    octx.strokeStyle = 'rgba(30, 15, 5, 0.35)';
+                    octx.lineWidth = 1;
+                    octx.beginPath();
+                    octx.moveTo(x + offX + 8, y + ph / 2);
+                    octx.lineTo(x + offX + pw - 12, y + ph / 2);
+                    octx.stroke();
+                }
+            }
+            // 左側客棧外黃土馬廄庭院
+            octx.fillStyle = '#4a3828';
+            octx.fillRect(0, 104, 185, LOGICAL_H - 104);
+            for (let i = 0; i < 45; i++) {
+                octx.fillStyle = 'rgba(30,20,10,0.25)';
+                octx.beginPath();
+                octx.arc((i * 37) % 170, 120 + ((i * 53) % 500), 6, 0, Math.PI * 2);
+                octx.fill();
+            }
+            // 客棧門檻木柱
+            octx.fillStyle = '#261409';
+            octx.fillRect(180, 104, 10, LOGICAL_H - 104);
+
+            // 北牆與三扇雕花木窗 + 斜射光束
+            octx.fillStyle = '#24140b';
+            octx.fillRect(0, 0, LOGICAL_W, 105);
+            [270, 560, 840].forEach(wx => {
+                const g = octx.createLinearGradient(wx, 24, wx, 92);
+                g.addColorStop(0, '#fef08a');
+                g.addColorStop(1, '#f59e0b');
+                octx.fillStyle = g;
+                octx.fillRect(wx, 24, 118, 68);
+                octx.strokeStyle = '#3d1e0d';
+                octx.lineWidth = 3;
+                octx.strokeRect(wx, 24, 118, 68);
+                for (let gx = wx + 24; gx < wx + 118; gx += 24) {
+                    octx.beginPath(); octx.moveTo(gx, 24); octx.lineTo(gx, 92); octx.stroke();
+                }
+                // 窗櫺晨光斜射光束
+                const beam = octx.createLinearGradient(wx, 92, wx + 40, 260);
+                beam.addColorStop(0, 'rgba(254, 240, 138, 0.22)');
+                beam.addColorStop(1, 'rgba(254, 240, 138, 0)');
+                octx.fillStyle = beam;
+                octx.beginPath();
+                octx.moveTo(wx, 92);
+                octx.lineTo(wx + 118, 92);
+                octx.lineTo(wx + 165, 260);
+                octx.lineTo(wx + 35, 260);
+                octx.closePath();
+                octx.fill();
+            });
+
+            // 客棧中央織錦紅毯
+            octx.fillStyle = '#6b1414';
+            octx.fillRect(425, 255, 375, 310);
+            octx.strokeStyle = '#d4af37';
+            octx.lineWidth = 3;
+            octx.strokeRect(433, 263, 359, 294);
+
+        } else if (c === 2) {
+            // 第三章：汾河古道・太原山隘 (汾河波光、蒼松翠柏、古道車轍、石碑高台)
+            octx.fillStyle = '#3a2e21';
+            octx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+            octx.fillStyle = '#4f3e2d';
+            octx.fillRect(70, 215, LOGICAL_W - 140, 320);
+
+            for (let i = 0; i < 140; i++) {
+                octx.fillStyle = (i % 3 === 0) ? '#2f4f2f' : ((i % 2 === 0) ? '#63503c' : '#2b2117');
+                octx.beginPath();
+                octx.arc((i * 97) % LOGICAL_W, 120 + ((i * 61) % (LOGICAL_H - 140)), 4 + (i % 7), 0, Math.PI * 2);
+                octx.fill();
+            }
+            // 北側汾河碧水與河岸護欄
+            const riverGrad = octx.createLinearGradient(0, 0, 0, 100);
+            riverGrad.addColorStop(0, '#082f49');
+            riverGrad.addColorStop(1, '#0284c7');
+            octx.fillStyle = riverGrad;
+            octx.fillRect(0, 0, LOGICAL_W, 96);
+            octx.fillStyle = '#78716c';
+            octx.fillRect(0, 96, LOGICAL_W, 12);
+
+        } else if (c === 3) {
+            // 第四章：太原行館・弈棋觀氣 (唐國公府朱門、青石板廣場、漢白玉八卦棋台)
+            octx.fillStyle = '#252d36';
+            octx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+            const tw = 86, th = 50;
+            for (let y = 104; y < LOGICAL_H; y += th) {
+                let offX = ((y / th) % 2) * (tw / 2);
+                for (let x = -tw; x < LOGICAL_W; x += tw) {
+                    let s = ((x * 9 + y * 13) % 16) - 8;
+                    octx.fillStyle = `rgb(${50 + s}, ${58 + s}, ${67 + s})`;
+                    octx.fillRect(x + offX + 2, y + 2, tw - 4, th - 4);
+                }
+            }
+            // 漢白玉雕花圓形棋台
+            const radial = octx.createRadialGradient(570, 340, 20, 570, 340, 135);
+            radial.addColorStop(0, 'rgba(241, 245, 249, 0.28)');
+            radial.addColorStop(1, 'rgba(148, 163, 184, 0.08)');
+            octx.fillStyle = radial;
+            octx.beginPath();
+            octx.arc(570, 340, 132, 0, Math.PI * 2);
+            octx.fill();
+            octx.strokeStyle = '#d4af37';
+            octx.lineWidth = 3;
+            octx.stroke();
+
+            // 北側太原李府門樓
+            octx.fillStyle = '#181d24';
+            octx.fillRect(0, 0, LOGICAL_W, 104);
+            octx.fillStyle = '#7f1d1d';
+            octx.fillRect(450, 16, 240, 88);
+            octx.strokeStyle = '#fbbf24';
+            octx.lineWidth = 3;
+            octx.strokeRect(450, 16, 240, 88);
+            octx.fillStyle = '#fde047';
+            octx.font = 'bold 20px "Noto Serif TC", serif';
+            octx.textAlign = 'center';
+            octx.fillText('【太原・唐國公李府行館】', 570, 55);
+
+        } else if (c === 4) {
+            // 第五章：洛陽虯髯宅・傾囊相授 (金磚玉階、紅柱畫棟、八陣圖演武廳)
+            octx.fillStyle = '#261310';
+            octx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+            const tw = 74, th = 74;
+            for (let y = 104; y < LOGICAL_H; y += th) {
+                for (let x = 0; x < LOGICAL_W; x += tw) {
+                    octx.strokeStyle = 'rgba(212, 175, 55, 0.2)';
+                    octx.lineWidth = 1.5;
+                    octx.strokeRect(x + 2, y + 2, tw - 4, th - 4);
+                }
+            }
+            octx.fillStyle = '#1b0c09';
+            octx.fillRect(0, 0, LOGICAL_W, 104);
+            octx.fillStyle = '#451a03';
+            octx.strokeStyle = '#fbbf24';
+            octx.lineWidth = 3;
+            octx.fillRect(420, 20, 300, 58);
+            octx.strokeRect(420, 20, 300, 58);
+            octx.fillStyle = '#fde047';
+            octx.font = 'bold 23px "Noto Serif TC", serif';
+            octx.textAlign = 'center';
+            octx.fillText('【洛陽・虯髯客豪宅正廳】', 570, 56);
+        }
+
+        chapterCanvases.push(off);
+    }
+}
+buildAllChapterBackgrounds();
+
+// --- 主角類別 ---
+class Player {
+    constructor() {
+        this.x = 200;
+        this.y = 480;
+        this.r = 21;
+        this.baseMaxHp = 220;
+        this.baseMaxSp = 110;
+        this.hp = 220;
+        this.sp = 110;
+        this.coins = 60;
+        this.dir = { x: 1, y: 0 };
+        this.isMoving = false;
+        this.walkCycle = 0;
+
+        this.comboStep = 0;
+        this.comboResetTimer = 0;
+        this.attackCooldown = 0;
+        this.slashAnim = null;
+
+        this.dashTimer = 0;
+        this.dashCooldown = 0;
+        this.invincibleTimer = 0;
+        this.hitFlash = 0;
+        this.afterimages = [];
+    }
+
+    get maxHp() {
+        return this.baseMaxHp + (upgrades.armorLv - 1) * 60 + (upgrades.qiLv - 1) * 35 + (storyFlags.ch2BagInspected ? 25 : 0) + (storyFlags.ch3GoldChestOpened ? 35 : 0);
+    }
+
+    get maxSp() {
+        return this.baseMaxSp + (upgrades.qiLv - 1) * 25;
+    }
+
+    get atkPower() {
+        let base = 28 + (upgrades.weaponLv - 1) * 15;
+        if (storyFlags.ch2LijingBuff) base = Math.round(base * 1.25);
+        return base;
+    }
+
+    update(walls) {
+        let regen = 0.18 + (upgrades.qiLv - 1) * 0.05 + (storyFlags.ch2HongfuBuff ? 0.09 : 0);
+        if (this.sp < this.maxSp) this.sp = Math.min(this.maxSp, this.sp + regen);
+
+        if (this.attackCooldown > 0) this.attackCooldown--;
+        if (this.comboResetTimer > 0) {
+            this.comboResetTimer--;
+            if (this.comboResetTimer <= 0) this.comboStep = 0;
+        }
+        if (this.dashCooldown > 0) this.dashCooldown--;
+        if (this.invincibleTimer > 0) this.invincibleTimer--;
+        if (this.hitFlash > 0) this.hitFlash--;
+
+        if (this.slashAnim) {
+            this.slashAnim.timer--;
+            if (this.slashAnim.timer <= 0) this.slashAnim = null;
+        }
+
+        for (let i = this.afterimages.length - 1; i >= 0; i--) {
+            this.afterimages[i].alpha -= 0.08;
+            if (this.afterimages[i].alpha <= 0) this.afterimages.splice(i, 1);
+        }
+
+        let dx = 0, dy = 0;
+        if (keys['KeyW'] || keys['ArrowUp']) dy -= 1;
+        if (keys['KeyS'] || keys['ArrowDown']) dy += 1;
+        if (keys['KeyA'] || keys['ArrowLeft']) dx -= 1;
+        if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
+
+        if (dx !== 0 || dy !== 0) {
+            let len = Math.hypot(dx, dy);
+            dx /= len;
+            dy /= len;
+            this.dir = { x: dx, y: dy };
+            this.isMoving = true;
+            this.walkCycle += 0.24;
+        } else {
+            this.isMoving = false;
+        }
+
+        let spd = 4.1 * (storyFlags.ch2HongfuBuff ? 1.18 : 1.0);
+        if (this.dashTimer > 0) {
+            this.dashTimer--;
+            spd = 12.0;
+            dx = this.dir.x;
+            dy = this.dir.y;
+            if (this.dashTimer % 2 === 0) {
+                this.afterimages.push({ x: this.x, y: this.y, alpha: 0.65 });
+            }
+        }
+
+        let nx = this.x + dx * spd;
+        let ny = this.y + dy * spd;
+        if (!this.collides(nx, this.y, walls)) this.x = nx;
+        if (!this.collides(this.x, ny, walls)) this.y = ny;
+
+        this.x = Math.max(38, Math.min(LOGICAL_W - 38, this.x));
+        this.y = Math.max(114, Math.min(LOGICAL_H - 38, this.y));
+    }
+
+    collides(nx, ny, walls) {
+        for (let w of walls) {
+            if (nx + this.r > w.x && nx - this.r < w.x + w.w &&
+                ny + this.r > w.y && ny - this.r < w.y + w.h) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    attack() {
+        if (this.attackCooldown > 0) return;
+        this.comboStep = (this.comboStep % 3) + 1;
+        this.comboResetTimer = 45;
+        this.attackCooldown = this.comboStep === 3 ? 19 : 12;
+
+        let angle = Math.atan2(this.dir.y, this.dir.x);
+        let radius = this.comboStep === 3 ? 115 : 88;
+        let arcSpan = this.comboStep === 3 ? Math.PI * 1.4 : 1.3;
+
+        this.slashAnim = {
+            x: this.x,
+            y: this.y,
+            angle: angle,
+            step: this.comboStep,
+            radius: radius,
+            arcSpan: arcSpan,
+            timer: 10,
+            maxTimer: 10
+        };
+
+        let mult = this.comboStep === 3 ? 1.6 : (this.comboStep === 2 ? 1.2 : 1.0);
+        let dmg = Math.round((this.atkPower + Math.random() * 6) * mult);
+        if (this.comboStep === 3) {
+            screenShake = 6;
+            spawnSparks(this.x + Math.cos(angle) * 42, this.y + Math.sin(angle) * 42, '#fbbf24', 15);
+        }
+
+        const chap = chapters[currentChapterIdx];
+        chap.enemies.forEach(en => {
+            if (en.dead) return;
+            let d = Math.hypot(en.x - this.x, en.y - this.y);
+            if (d < radius + en.r) {
+                let aToE = Math.atan2(en.y - this.y, en.x - this.x);
+                let diff = Math.abs(Math.atan2(Math.sin(aToE - angle), Math.cos(aToE - angle)));
+                if (diff < arcSpan || d < 55) {
+                    en.takeDamage(dmg, Math.cos(angle) * (this.comboStep === 3 ? 14 : 8), Math.sin(angle) * (this.comboStep === 3 ? 14 : 8), this.comboStep === 3);
+                }
+            }
+        });
+
+        chap.destructibles.forEach(box => {
+            if (!box.broken && Math.hypot(box.x - this.x, box.y - this.y) < radius + 24) {
+                damageDestructible(box, dmg);
+            }
+        });
+    }
+
+    castDragonSlash() {
+        if (this.sp < 20 || this.attackCooldown > 0) {
+            if (this.sp < 20) spawnFloatingText(this.x, this.y - 35, "真氣不足 (需20氣)", "#60a5fa", 15);
+            return;
+        }
+        this.sp -= 20;
+        this.attackCooldown = 19;
+        screenShake = 8;
+
+        let angle = Math.atan2(this.dir.y, this.dir.x);
+        projectiles.push({
+            type: 'DRAGON',
+            fromPlayer: true,
+            x: this.x + Math.cos(angle) * 28,
+            y: this.y + Math.sin(angle) * 28,
+            vx: Math.cos(angle) * 10.8,
+            vy: Math.sin(angle) * 10.8,
+            angle: angle,
+            r: 45,
+            dmg: Math.round(this.atkPower * 2.25),
+            life: 65,
+            hitSet: new Set()
+        });
+        spawnFloatingText(this.x, this.y - 46, "🔥 赤龍斬！", "#fbbf24", 20);
+        spawnSparks(this.x, this.y, '#f97316', 18);
+    }
+
+    castEarthShatter() {
+        if (this.sp < 25 || this.attackCooldown > 0) {
+            if (this.sp < 25) spawnFloatingText(this.x, this.y - 35, "真氣不足 (需25氣)", "#60a5fa", 15);
+            return;
+        }
+        this.sp -= 25;
+        this.attackCooldown = 23;
+        screenShake = 14;
+
+        let radius = 170;
+        shockwaves.push({ x: this.x, y: this.y, r: 20, maxR: radius, color: '#f59e0b', alpha: 1 });
+        spawnSparks(this.x, this.y, '#fbbf24', 32);
+        spawnFloatingText(this.x, this.y - 48, "💥 霸王裂地破！(震暈)", "#fde047", 21);
+
+        const chap = chapters[currentChapterIdx];
+        let dmg = Math.round(this.atkPower * 1.95);
+        chap.enemies.forEach(en => {
+            if (!en.dead) {
+                let d = Math.hypot(en.x - this.x, en.y - this.y);
+                if (d < radius + en.r) {
+                    let ang = Math.atan2(en.y - this.y, en.x - this.x);
+                    en.stunTimer = 95;
+                    en.takeDamage(dmg, Math.cos(ang) * 15, Math.sin(ang) * 15, true);
+                }
+            }
+        });
+        chap.destructibles.forEach(box => {
+            if (!box.broken && Math.hypot(box.x - this.x, box.y - this.y) < radius) {
+                damageDestructible(box, 999);
+            }
+        });
+    }
+
+    castThreeHeroesUlt() {
+        if (this.sp < 40 || this.attackCooldown > 0) {
+            if (this.sp < 40) spawnFloatingText(this.x, this.y - 35, "真氣不足 (需40氣)", "#c084fc", 15);
+            return;
+        }
+        this.sp -= 40;
+        this.attackCooldown = 26;
+        screenShake = 18;
+
+        spawnFloatingText(this.x, this.y - 55, "⚡ 風塵三俠・乾坤合擊！", "#e879f9", 24);
+        shockwaves.push({ x: this.x, y: this.y, r: 30, maxR: 320, color: '#38bdf8', alpha: 1 });
+        shockwaves.push({ x: this.x, y: this.y, r: 10, maxR: 260, color: '#f43f5e', alpha: 1 });
+
+        for (let i = 0; i < 8; i++) {
+            let ang = (Math.PI * 2 / 8) * i;
+            projectiles.push({
+                type: 'ALLY_SWORD',
+                fromPlayer: true,
+                x: this.x,
+                y: this.y,
+                vx: Math.cos(ang) * 9.5,
+                vy: Math.sin(ang) * 9.5,
+                angle: ang,
+                r: 24,
+                dmg: Math.round(this.atkPower * 1.65),
+                life: 55,
+                hitSet: new Set()
+            });
+        }
+
+        const chap = chapters[currentChapterIdx];
+        chap.enemies.forEach(en => {
+            if (!en.dead) {
+                spawnSparks(en.x, en.y, '#38bdf8', 20);
+                spawnSparks(en.x, en.y, '#f43f5e', 20);
+                en.stunTimer = 65;
+                en.takeDamage(Math.round(this.atkPower * 2.6), 0, -4, true);
+            }
+        });
+    }
+
+    dash() {
+        if (this.dashCooldown > 0 || this.sp < 12) return;
+        this.sp -= 12;
+        this.dashTimer = 11;
+        this.invincibleTimer = 20;
+        this.dashCooldown = 22;
+        spawnSparks(this.x, this.y, '#38bdf8', 10);
+    }
+
+    takeDamage(dmg) {
+        if (this.invincibleTimer > 0) {
+            spawnFloatingText(this.x, this.y - 30, "閃避！", "#38bdf8", 16);
+            return;
+        }
+        let reduced = Math.max(4, Math.round(dmg * (1 - (upgrades.armorLv - 1) * 0.12)));
+        this.hp = Math.max(0, this.hp - reduced);
+        this.hitFlash = 9;
+        this.invincibleTimer = 24;
+        screenShake = 8;
+        spawnFloatingText(this.x, this.y - 30, `-${reduced}`, "#ef4444", 20);
+        spawnSparks(this.x, this.y, '#ef4444', 12);
+
+        if (this.hp <= 0) {
+            this.hp = Math.round(this.maxHp * 0.8);
+            this.sp = this.maxSp;
+            spawnFloatingText(this.x, this.y - 52, "🔥 虯髯豪氣護體・重振旗鼓！", "#facc15", 22);
+            spawnSparks(this.x, this.y, '#facc15', 30);
+        }
+    }
+
+    draw() {
+        this.afterimages.forEach(img => {
+            ctx.save();
+            ctx.globalAlpha = img.alpha * 0.45;
+            drawCharacterSprite(img.x, img.y, 'PLAYER', false, 0, true);
+            ctx.restore();
+        });
+
+        drawCharacterSprite(this.x, this.y, 'PLAYER', this.isMoving, this.walkCycle, this.hitFlash > 0);
+
+        if (this.slashAnim) {
+            ctx.save();
+            ctx.translate(this.slashAnim.x, this.slashAnim.y);
+            ctx.rotate(this.slashAnim.angle);
+            let p = this.slashAnim.timer / this.slashAnim.maxTimer;
+            ctx.beginPath();
+            ctx.arc(8, 0, this.slashAnim.radius, -this.slashAnim.arcSpan / 2, this.slashAnim.arcSpan / 2);
+            ctx.strokeStyle = this.slashAnim.step === 3 ? `rgba(249, 115, 22, ${p})` : `rgba(253, 224, 71, ${p})`;
+            ctx.lineWidth = (this.slashAnim.step === 3 ? 22 : 14) * p;
+            ctx.shadowColor = '#ea580c';
+            ctx.shadowBlur = 16;
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+}
+
+const player = new Player();
+
+// --- 全新精細古風角色建模渲染器 (支援交領漢服、披風、五官眼神、髮冠步搖、武器細節) ---
+function drawCharacterSprite(x, y, role, isMoving, walkCycle, isHitFlash) {
+    ctx.save();
+    ctx.translate(x, y);
+
+    let breath = Math.sin(globalTime * 0.08 + x * 0.1) * 1.4;
+    let legSwing = isMoving ? Math.sin(walkCycle) * 5.5 : 0;
+    let capeWave = Math.sin(globalTime * 0.1 + x * 0.05) * 3;
+    let isLarge = (role === 'BOSS_1' || role === 'BOSS_2' || role === 'BOSS_3');
+
+    // 地面立體陰影
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.beginPath();
+    ctx.ellipse(0, 23, isLarge ? 32 : 19, isLarge ? 11 : 7.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (role === 'PLAYER') {
+        // 1. 飄動英雄披風
+        ctx.fillStyle = upgrades.armorLv >= 3 ? '#9a3412' : '#651212';
+        ctx.beginPath();
+        ctx.moveTo(-14, -10 + breath);
+        ctx.lineTo(14, -10 + breath);
+        ctx.lineTo(22 + capeWave, 19);
+        ctx.lineTo(-22 + capeWave, 19);
+        ctx.closePath();
+        ctx.fill();
+
+        // 2. 戰靴與護腿
+        ctx.fillStyle = '#1c1917';
+        ctx.fillRect(-10, 10 + legSwing, 8, 12);
+        ctx.fillRect(2, 10 - legSwing, 8, 12);
+        ctx.fillStyle = '#d97706';
+        ctx.fillRect(-10, 12 + legSwing, 8, 2);
+        ctx.fillRect(2, 12 - legSwing, 8, 2);
+
+        // 3. 交領武俠勁裝與護心甲
+        ctx.fillStyle = isHitFlash ? '#fff' : (upgrades.armorLv >= 4 ? '#d97706' : '#991b1b');
+        ctx.fillRect(-14, -10 + breath, 28, 24);
+        // 交領衣襟線條
+        ctx.strokeStyle = '#fde047';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-8, -10 + breath); ctx.lineTo(4, 3 + breath);
+        ctx.moveTo(8, -10 + breath); ctx.lineTo(-2, 0 + breath);
+        ctx.stroke();
+
+        // 腰封與玉佩
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(-14, 3 + breath, 28, 4.5);
+        ctx.fillStyle = '#34d399';
+        ctx.beginPath();
+        ctx.arc(-5, 9 + breath, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 虎皮毛領
+        ctx.fillStyle = '#f5f5f4';
+        ctx.beginPath();
+        ctx.ellipse(0, -10 + breath, 15, 4.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 4. 右手持神兵
+        ctx.save();
+        ctx.translate(16, -2 + breath - legSwing * 0.4);
+        ctx.rotate(0.28);
+        let bladeLen = 30 + upgrades.weaponLv * 3;
+        ctx.fillStyle = upgrades.weaponLv >= 4 ? '#38bdf8' : (upgrades.weaponLv >= 3 ? '#f97316' : '#e2e8f0');
+        ctx.beginPath();
+        ctx.moveTo(-3.5, 0);
+        ctx.lineTo(-2.5, -bladeLen);
+        ctx.lineTo(0, -bladeLen - 6);
+        ctx.lineTo(2.5, -bladeLen);
+        ctx.lineTo(3.5, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(-7, -2, 14, 4);
+        ctx.fillStyle = '#7f1d1d';
+        ctx.fillRect(-2, 2, 4, 6);
+        ctx.restore();
+
+        // 5. 頭部、五官眼神與立體赤紅虯髯
+        ctx.fillStyle = isHitFlash ? '#fff' : '#e6a985';
+        ctx.beginPath();
+        ctx.arc(0, -21 + breath, 11.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 濃眉與虎目
+        ctx.fillStyle = '#7c2d12';
+        ctx.fillRect(-7, -25 + breath, 5, 2);
+        ctx.fillRect(2, -25 + breath, 5, 2);
+        ctx.fillStyle = '#1c1917';
+        ctx.fillRect(-5, -22 + breath, 2.5, 2.5);
+        ctx.fillRect(3, -22 + breath, 2.5, 2.5);
+
+        // 標誌性捲曲赤紅虯髯 (多層次)
+        ctx.fillStyle = '#c2410c';
+        ctx.beginPath();
+        ctx.arc(-9, -15 + breath, 6, 0, Math.PI * 2);
+        ctx.arc(9, -15 + breath, 6, 0, Math.PI * 2);
+        ctx.arc(-5, -11 + breath, 6.5, 0, Math.PI * 2);
+        ctx.arc(5, -11 + breath, 6.5, 0, Math.PI * 2);
+        ctx.arc(0, -9 + breath, 7.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ea580c';
+        ctx.beginPath();
+        ctx.arc(-4, -13 + breath, 4.5, 0, Math.PI * 2);
+        ctx.arc(4, -13 + breath, 4.5, 0, Math.PI * 2);
+        ctx.arc(0, -11 + breath, 5.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 武俠束髮金箍與頭巾
+        ctx.fillStyle = '#29150c';
+        ctx.beginPath();
+        ctx.arc(0, -24 + breath, 11.5, Math.PI, 0);
+        ctx.fill();
+        ctx.fillRect(-5, -36 + breath, 10, 7);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(-11, -27 + breath, 22, 3);
+
+    } else if (role === 'HONGFU') {
+        // 紅拂女：紫色夜行披風 + 緋紅仙裙 + 雲髻步搖 + 紅絲拂塵
+        ctx.fillStyle = '#581c87';
+        ctx.beginPath();
+        ctx.moveTo(-13, -10 + breath);
+        ctx.lineTo(13, -10 + breath);
+        ctx.lineTo(19 + capeWave, 20);
+        ctx.lineTo(-19 + capeWave, 20);
+        ctx.closePath();
+        ctx.fill();
+
+        // 仙裙與交領上襦
+        ctx.fillStyle = '#be123c';
+        ctx.beginPath();
+        ctx.moveTo(-11, -8 + breath);
+        ctx.lineTo(11, -8 + breath);
+        ctx.lineTo(16, 21);
+        ctx.lineTo(-16, 21);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#fda4af';
+        ctx.fillRect(-10, -9 + breath, 20, 11);
+        ctx.strokeStyle = '#fef08a';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-6, -9 + breath); ctx.lineTo(2, 2 + breath);
+        ctx.moveTo(6, -9 + breath); ctx.lineTo(-2, 2 + breath);
+        ctx.stroke();
+
+        // 束腰絲帶
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(-11, 0 + breath, 22, 3.5);
+
+        // 烏黑長髮與雲髻
+        ctx.fillStyle = '#18181b';
+        ctx.beginPath();
+        ctx.arc(0, -22 + breath, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(-12, -20 + breath, 5, 22); // 垂肩長髮
+
+        // 秀麗臉龐與明眸朱唇
+        ctx.fillStyle = '#ffedd5';
+        ctx.beginPath();
+        ctx.arc(0, -19 + breath, 9.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#18181b';
+        ctx.fillRect(-5, -21 + breath, 2, 2);
+        ctx.fillRect(3, -21 + breath, 2, 2);
+        ctx.fillStyle = '#e11d48';
+        ctx.fillRect(-1.5, -15 + breath, 3, 1.5);
+
+        // 金步搖髮簪
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(0, -32 + breath, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(7, -30 + breath, 8, 2);
+
+        // 手中紅拂塵
+        ctx.save();
+        ctx.translate(15, -6 + breath);
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(-1.5, -4, 3, 12);
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.ellipse(2, -10, 5, 11, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+    } else if (role === 'LIJING') {
+        // 李靖：藍白儒將長袍 + 護肩 + 佩劍 + 英挺髮冠
+        ctx.fillStyle = '#1e3a8a';
+        ctx.beginPath();
+        ctx.moveTo(-13, -10 + breath);
+        ctx.lineTo(13, -10 + breath);
+        ctx.lineTo(17 + capeWave, 20);
+        ctx.lineTo(-17 + capeWave, 20);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#1d4ed8';
+        ctx.fillRect(-12, -10 + breath, 24, 28);
+        ctx.fillStyle = '#e0f2fe';
+        ctx.fillRect(-7, -10 + breath, 14, 28);
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-6, -10 + breath); ctx.lineTo(2, 2 + breath);
+        ctx.moveTo(6, -10 + breath); ctx.lineTo(-2, 2 + breath);
+        ctx.stroke();
+
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(-12, 2 + breath, 24, 4);
+
+        // 腰間長劍
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(13, -6 + breath, 4, 22);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(10, -6 + breath, 10, 3);
+
+        // 臉龐與五官
+        ctx.fillStyle = '#fed7aa';
+        ctx.beginPath();
+        ctx.arc(0, -20 + breath, 10.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(-5, -22 + breath, 2.5, 2.5);
+        ctx.fillRect(3, -22 + breath, 2.5, 2.5);
+
+        // 儒將高冠
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-10, -29 + breath, 20, 5);
+        ctx.fillRect(-5, -36 + breath, 10, 7);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(-5, -32 + breath, 10, 2);
+
+    } else if (role === 'TAOIST') {
+        // 東嶽道士：玄黃八卦道袍 + 白髯 + 拂塵 + 蓮花道冠
+        ctx.fillStyle = '#b45309';
+        ctx.beginPath();
+        ctx.moveTo(-13, -10 + breath);
+        ctx.lineTo(13, -10 + breath);
+        ctx.lineTo(19, 21);
+        ctx.lineTo(-19, 21);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#fef3c7';
+        ctx.beginPath();
+        ctx.arc(0, 3 + breath, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#1c1917';
+        ctx.beginPath();
+        ctx.arc(0, 3 + breath, 6, -Math.PI / 2, Math.PI / 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#fed7aa';
+        ctx.beginPath();
+        ctx.arc(0, -20 + breath, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(-5, -22 + breath, 2, 2);
+        ctx.fillRect(3, -22 + breath, 2, 2);
+
+        // 仙風白長鬚
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath();
+        ctx.moveTo(-6, -15 + breath);
+        ctx.lineTo(6, -15 + breath);
+        ctx.lineTo(0, 0 + breath);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(-8, -32 + breath, 16, 6);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(-4, -36 + breath, 8, 4);
+
+    } else if (role === 'SHIMIN') {
+        // 李世民：真龍天子金光護體 + 裼裘毛領大氅 + 龍鳳天日之表
+        let aura = 32 + Math.sin(globalTime * 0.12) * 4;
+        let grad = ctx.createRadialGradient(0, -6, 4, 0, -6, aura);
+        grad.addColorStop(0, 'rgba(250, 204, 21, 0.75)');
+        grad.addColorStop(1, 'rgba(250, 204, 21, 0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, -6, aura, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 裼裘大氅
+        ctx.fillStyle = '#92400e';
+        ctx.beginPath();
+        ctx.moveTo(-15, -11 + breath);
+        ctx.lineTo(15, -11 + breath);
+        ctx.lineTo(22 + capeWave, 21);
+        ctx.lineTo(-22 + capeWave, 21);
+        ctx.closePath();
+        ctx.fill();
+
+        // 明黃金袍
+        ctx.fillStyle = '#eab308';
+        ctx.fillRect(-12, -10 + breath, 24, 29);
+        ctx.fillStyle = '#fef08a';
+        ctx.fillRect(-6, -10 + breath, 12, 29);
+
+        // 雪白裘毛領
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath();
+        ctx.ellipse(0, -10 + breath, 15, 4.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffedd5';
+        ctx.beginPath();
+        ctx.arc(0, -21 + breath, 10.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#1c1917';
+        ctx.fillRect(-5, -23 + breath, 2.5, 2.5);
+        ctx.fillRect(3, -23 + breath, 2.5, 2.5);
+
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(-8, -34 + breath, 16, 7);
+
+    } else if (role === 'LIUWENJING' || role === 'GUARD' || role === 'WIFE') {
+        ctx.fillStyle = role === 'WIFE' ? '#9d174d' : (role === 'LIUWENJING' ? '#0f766e' : '#3f3f46');
+        ctx.fillRect(-12, -10 + breath, 24, 28);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(-12, 2 + breath, 24, 3);
+        ctx.fillStyle = '#fed7aa';
+        ctx.beginPath();
+        ctx.arc(0, -20 + breath, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#18181b';
+        ctx.fillRect(-5, -22 + breath, 2, 2);
+        ctx.fillRect(3, -22 + breath, 2, 2);
+        ctx.fillStyle = role === 'WIFE' ? '#f59e0b' : '#1e293b';
+        ctx.fillRect(-10, -30 + breath, 20, 6);
+
+    } else if (role === 'MINION') {
+        ctx.fillStyle = isHitFlash ? '#fff' : '#374151';
+        ctx.fillRect(-12, -10 + breath, 24, 25);
+        ctx.fillStyle = '#991b1b';
+        ctx.fillRect(-12, 2 + breath, 24, 4);
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(13, -18 + breath, 3, 28);
+        ctx.fillStyle = isHitFlash ? '#fff' : '#d6d3d1';
+        ctx.beginPath();
+        ctx.arc(0, -18 + breath, 9.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#111827';
+        ctx.beginPath();
+        ctx.arc(0, -20 + breath, 10.5, Math.PI, 0);
+        ctx.fill();
+
+    } else if (isLarge) {
+        ctx.scale(1.4, 1.4);
+        ctx.fillStyle = role === 'BOSS_3' ? '#3b0764' : '#450a0a';
+        ctx.beginPath();
+        ctx.moveTo(-20, -14 + breath);
+        ctx.lineTo(20, -14 + breath);
+        ctx.lineTo(27 + capeWave, 20);
+        ctx.lineTo(-27 + capeWave, 20);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = isHitFlash ? '#fff' : (role === 'BOSS_3' ? '#581c87' : '#1f2937');
+        ctx.fillRect(-18, -14 + breath, 36, 30);
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-18, -14 + breath, 36, 30);
+
+        ctx.fillStyle = '#374151';
+        ctx.beginPath();
+        ctx.arc(0, -24 + breath, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(-10, -28 + breath); ctx.lineTo(-19, -38 + breath);
+        ctx.moveTo(10, -28 + breath); ctx.lineTo(19, -38 + breath);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(-6, -25 + breath, 4, 3);
+        ctx.fillRect(2, -25 + breath, 4, 3);
+
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(19, -34 + breath, 14, 24);
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(24, -10 + breath, 4, 26);
+    }
+
+    ctx.restore();
+}
+
+// --- 對話框專屬「高清半身立繪」渲染器 ---
+function drawHalfBodyPortrait(x, y, w, h, role) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, w, h);
+    ctx.clip();
+
+    // 立繪背景光暈
+    const bgGrad = ctx.createRadialGradient(x + w / 2, y + h / 2, 10, x + w / 2, y + h / 2, 75);
+    if (role === 'SHIMIN') {
+        bgGrad.addColorStop(0, '#854d0e');
+        bgGrad.addColorStop(1, '#1c1917');
+    } else if (role === 'HONGFU' || role === 'WIFE') {
+        bgGrad.addColorStop(0, '#881337');
+        bgGrad.addColorStop(1, '#1c1917');
+    } else if (role === 'LIJING' || role === 'LIUWENJING') {
+        bgGrad.addColorStop(0, '#1e3a8a');
+        bgGrad.addColorStop(1, '#1c1917');
+    } else {
+        bgGrad.addColorStop(0, '#7c2d12');
+        bgGrad.addColorStop(1, '#1c1917');
+    }
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(x, y, w, h);
+
+    // 放大繪製精細半身像
+    ctx.translate(x + w / 2, y + h - 18);
+    ctx.scale(2.15, 2.15);
+    drawCharacterSprite(0, 0, role, false, 0, false);
+
+    ctx.restore();
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(x, y, w, h);
+}
+
+// --- 敵人與 Boss 類別 ---
+class Enemy {
+    constructor(x, y, name, role, maxHp, atk, isBoss = false) {
+        this.x = x;
+        this.y = y;
+        this.name = name;
+        this.role = role;
+        this.isBoss = isBoss;
+        this.r = isBoss ? 35 : 20;
+        this.maxHp = maxHp;
+        this.hp = maxHp;
+        this.atk = atk;
+        this.speed = isBoss ? 1.55 : 1.8;
+        this.vx = 0;
+        this.vy = 0;
+        this.hitFlash = 0;
+        this.stunTimer = 0;
+        this.dead = false;
+        this.walkCycle = Math.random() * 10;
+
+        this.slamCooldown = 135;
+        this.slamCharging = 0;
+        this.slamMaxCharge = 72;
+        this.slamRadius = isBoss ? 150 : 95;
+    }
+
+    update() {
+        if (this.dead) return;
+        if (this.hitFlash > 0) this.hitFlash--;
+
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vx *= 0.82;
+        this.vy *= 0.82;
+
+        if (this.stunTimer > 0) {
+            this.stunTimer--;
+            return;
+        }
+
+        let dist = Math.hypot(player.x - this.x, player.y - this.y);
+
+        if (this.isBoss) {
+            if (this.slamCharging > 0) {
+                this.slamCharging++;
+                if (this.slamCharging >= this.slamMaxCharge) {
+                    this.slamCharging = 0;
+                    this.slamCooldown = 150;
+                    screenShake = 16;
+                    shockwaves.push({ x: this.x, y: this.y, r: 15, maxR: this.slamRadius, color: '#ef4444', alpha: 1 });
+                    spawnSparks(this.x, this.y, '#ef4444', 32);
+                    if (dist < this.slamRadius) {
+                        player.takeDamage(this.atk + 14);
+                    }
+                }
+                return;
+            }
+            if (this.slamCooldown > 0) this.slamCooldown--;
+            if (this.slamCooldown <= 0 && dist < 210) {
+                this.slamCharging = 1;
+                spawnFloatingText(this.x, this.y - 60, `⚠️ ${this.name}・蓄力重擊！`, "#f87171", 17);
+                return;
+            }
+        }
+
+        if (dist > this.r + player.r - 3) {
+            let ang = Math.atan2(player.y - this.y, player.x - this.x);
+            this.x += Math.cos(ang) * this.speed;
+            this.y += Math.sin(ang) * this.speed;
+            this.walkCycle += 0.18;
+        } else {
+            player.takeDamage(this.atk);
+        }
+
+        this.x = Math.max(45, Math.min(LOGICAL_W - 45, this.x));
+        this.y = Math.max(115, Math.min(LOGICAL_H - 45, this.y));
+    }
+
+    takeDamage(dmg, kx, ky, isCrit) {
+        if (this.dead) return;
+        this.hp -= dmg;
+        this.hitFlash = 8;
+        this.vx = kx * (this.isBoss ? 0.35 : 1.0);
+        this.vy = ky * (this.isBoss ? 0.35 : 1.0);
+
+        spawnFloatingText(this.x + (Math.random() - 0.5) * 18, this.y - 35, isCrit ? `💥${dmg}` : `${dmg}`, isCrit ? '#fbbf24' : '#fff', isCrit ? 22 : 17);
+        spawnSparks(this.x, this.y, isCrit ? '#f97316' : '#fef08a', isCrit ? 14 : 7);
+
+        if (this.hp <= 0) {
+            this.hp = 0;
+            this.dead = true;
+            stats.enemiesDefeated++;
+            let coinDrop = this.isBoss ? 120 : 25;
+            player.coins += coinDrop;
+            updateNavBadges();
+            spawnFloatingText(this.x, this.y - 52, `💰 +${coinDrop} 五銖錢`, "#facc15", 19);
+            spawnSparks(this.x, this.y, '#ef4444', 30);
+
+            if (currentChapterIdx === 0 && this.isBoss) {
+                storyFlags.ch1BagRetrieved = true;
+                unlockLore(2);
+                spawnFloatingText(this.x, this.y - 75, "🗡️ 斬殺仇敵裝入【革囊】！可由右側前往靈石客棧", "#4ade80", 21);
+            }
+            if (currentChapterIdx === 4 && this.isBoss) {
+                unlockLore(10);
+                unlockLore(12);
+                setTimeout(() => openEndingModal(), 950);
+            }
+        }
+    }
+
+    draw() {
+        if (this.dead) return;
+        if (this.isBoss && this.slamCharging > 0) {
+            let p = this.slamCharging / this.slamMaxCharge;
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(this.x, this.y + 8, this.slamRadius, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(239, 68, 68, ${0.14 + p * 0.28})`;
+            ctx.fill();
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(this.x, this.y + 8, this.slamRadius * (1 - p), 0, Math.PI * 2);
+            ctx.strokeStyle = '#fde047';
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        drawCharacterSprite(this.x, this.y, this.role, true, this.walkCycle, this.hitFlash > 0);
+
+        ctx.save();
+        ctx.textAlign = 'center';
+        if (this.stunTimer > 0) {
+            ctx.fillStyle = '#fde047';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillText('💫 暈眩中', this.x, this.y - 56);
+        }
+        ctx.fillStyle = 'rgba(0,0,0,0.78)';
+        ctx.fillRect(this.x - 28, this.y - 44, 56, 6);
+        ctx.fillStyle = this.isBoss ? '#f59e0b' : '#ef4444';
+        ctx.fillRect(this.x - 27, this.y - 43, 54 * (this.hp / this.maxHp), 4);
+
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillStyle = this.isBoss ? '#fde047' : '#e5e7eb';
+        ctx.fillText(this.name, this.x, this.y - 48);
+        ctx.restore();
+    }
+}
+
+let groundLoots = [];
+let projectiles = [];
+let sparks = [];
+let shockwaves = [];
+let floatingTexts = [];
+
+function damageDestructible(box, dmg) {
+    box.hp -= dmg;
+    spawnSparks(box.x, box.y, '#d97706', 10);
+    if (box.hp <= 0 && !box.broken) {
+        box.broken = true;
+        spawnSparks(box.x, box.y, '#fbbf24', 18);
+        let r = Math.random();
+        if (r < 0.45) {
+            groundLoots.push({ x: box.x, y: box.y, type: 'COIN', amount: 30, label: '💰 五銖錢x30' });
+        } else if (r < 0.75) {
+            groundLoots.push({ x: box.x, y: box.y, type: 'BUN', amount: 50, label: '🥟 熱騰胡餅(+50血)' });
+        } else {
+            groundLoots.push({ x: box.x, y: box.y, type: 'WINE', amount: 40, label: '🍶 太原汾酒(+40氣)' });
+        }
+    }
+}
+
+function spawnSparks(x, y, color, count) {
+    for (let i = 0; i < count; i++) {
+        let a = Math.random() * Math.PI * 2;
+        let s = 2 + Math.random() * 6.5;
+        sparks.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, color, r: 2 + Math.random() * 2.5, alpha: 1 });
+    }
+}
+
+function spawnFloatingText(x, y, text, color, size = 17) {
+    floatingTexts.push({ x, y, text, color, size, alpha: 1, vy: -1.3 });
+}
+
+// --- 五大章節完整劇情與隨機選項分佈 (答案均勻分佈於 1、2、3) ---
+const chapters = [
+    // 第一章：西京長安・紅拂夜奔
+    {
+        title: "第一章【西京長安・紅拂夜奔】",
+        sub: "楊素踞床傲慢・紫衣戴帽叩門・手刃仇敵取革囊",
+        spawn: { x: 130, y: 470 },
+        walls: [],
+        destructibles: [
+            { x: 420, y: 250, type: 'CRATE', hp: 30, broken: false },
+            { x: 465, y: 250, type: 'JAR', hp: 20, broken: false },
+            { x: 760, y: 540, type: 'CRATE', hp: 30, broken: false },
+            { x: 805, y: 540, type: 'JAR', hp: 20, broken: false }
+        ],
+        props: [
+            {
+                x: 340, y: 135, type: 'NOTICE', title: '📜 大隋司空府告示（李靖獻策典故）',
+                desc: '按 [E] 或點擊閱讀李靖以布衣向楊素獻策之原著情節',
+                onInteract: () => {
+                    unlockLore(1);
+                    unlockLore(2);
+                    startCustomDialogue("📜 司空楊素府告示", "LIJING", [
+                        "【原著背景】隋煬帝幸江都，命司空楊素留守西京。楊素貴盛，每接見賓客皆「踞床而見」，令美人捧出犀角、玉器環立於側。",
+                        "李靖以布衣上謁獻奇策，楊素卻傲慢不禮。李靖正色斥曰：「天下方亂，英雄競起。公為帝室重臣，須以收羅豪傑為心，不宜踞見賓客！」楊素方才斂容謝之。",
+                        {
+                            type: 'QA', id: 'q1',
+                            text: "【國文隨堂考 ①】《虯髯客傳》作者為唐末道士杜光庭，請問本篇作品在文體分類上屬於下列何者？",
+                            options: ["唐代傳奇小說（文言短篇小說・豪俠類）", "六朝志怪筆記（零星鬼神見聞）", "宋元話本小說（供說書人講唱的白話小說）"],
+                            correctIndex: 0, // 答案為 [1]
+                            wrongText: "❌ 再想一下！六朝是志怪，宋代是白話話本，《虯髯客傳》是唐代文言短篇小說喔！"
+                        },
+                        "【課文詳解】答對了（答案為 1）！《虯髯客傳》為唐傳奇豪俠類巔峰之作，人物形象鮮明、情節富戲劇張力！"
+                    ]);
+                }
+            },
+            {
+                x: 595, y: 125, type: 'GATE', title: '🚪 負心惡霸宅門',
+                desc: '原著典故：虯髯客「銜一死者十餘年，今始獲之」',
+                onInteract: () => {
+                    spawnFloatingText(595, 95, "🗡️ 虯髯客：「此賊負心害義，今日取其首級與心肝入革囊！」", "#fbbf24", 18);
+                }
+            }
+        ],
+        npcs: [
+            {
+                x: 150, y: 205, name: "紅拂女與李靖", title: "【紫衣叩門・紅拂夜奔】", role: "HONGFU",
+                dialogues: [
+                    "【原著重現】李靖獻策當夜回到長安逆旅（客棧），五更初，忽聞有人輕叩房門。靖起問之，乃一「紫衣戴帽人」，杖揭一囊！",
+                    "那人入室脫去紫衣與帽，竟是一位十八九歲的絕色麗人（張出塵）！她向李靖拜曰：「妾侍楊司空久，閱天下之人多矣，無如公者。絲蘿非獨生，願託喬木，故來奔耳！」",
+                    {
+                        type: 'QA', id: 'q2',
+                        text: "【國文隨堂考 ②】當李靖擔心楊素權勢滔天、追捕必急時，紅拂女回答：「彼屍居餘氣，不足畏也。」請問「屍居餘氣」是什麼意思？",
+                        options: ["形容楊素府第陰森恐怖如同墓地", "形容楊素武藝高強、殺氣騰騰", "形容楊素衰老腐朽，如行屍走肉般苟延殘喘，毫無作為"],
+                        correctIndex: 2, // 答案為 [3]
+                        wrongText: "❌ 提示：「屍居」指像屍體般靜臥不動，「餘氣」指只剩最後一口殘氣！"
+                    },
+                    "【課文詳解】答對了（答案為 3）！紅拂女一眼看穿楊素府中眾多侍妓皆知其無能將敗，於是與李靖改裝乘馬，連夜奔往太原！"
+                ],
+                onComplete: () => {
+                    unlockLore(2);
+                    unlockLore(3);
+                }
+            }
+        ],
+        allies: [],
+        enemies: [
+            new Enemy(540, 360, "惡霸家丁", "MINION", 85, 10, false),
+            new Enemy(680, 440, "惡霸護院", "MINION", 85, 10, false),
+            new Enemy(850, 360, "長安惡霸頭目", "BOSS_1", 250, 15, true)
+        ],
+        portal: { x: 1010, y: 310, w: 105, h: 120, targetChap: 1, label: "➡ 前往【靈石客棧】" }
+    },
+
+    // 第二章：靈石客棧・風塵三俠
+    {
+        title: "第二章【靈石客棧・風塵三俠】",
+        sub: "臨軒梳頭・刷馬息怒・認兄化險・切心肝共食結拜",
+        spawn: { x: 110, y: 520 },
+        walls: [
+            { x: 250, y: 330, w: 120, h: 85 },
+            { x: 520, y: 340, w: 155, h: 90 }
+        ],
+        destructibles: [
+            { x: 960, y: 220, type: 'JAR', hp: 20, broken: false },
+            { x: 960, y: 265, type: 'JAR', hp: 20, broken: false },
+            { x: 960, y: 510, type: 'CRATE', hp: 25, broken: false }
+        ],
+        props: [
+            {
+                x: 95, y: 290, type: 'DONKEY', title: '🫏 虯髯客的蹇驢與李靖駿馬',
+                desc: '按 [E] 餵食青草（原著：乘蹇驢而來 ／ 李靖怒甚，未決，猶刷馬）',
+                onInteract: () => {
+                    unlockLore(11);
+                    if (!storyFlags.ch2DonkeyFed) {
+                        storyFlags.ch2DonkeyFed = true;
+                        player.coins += 60;
+                        updateNavBadges();
+                        spawnFloatingText(95, 250, "🌿 餵食蹇驢！從鞍袋摸出 +60 五銖錢！", "#4ade80", 19);
+                        startCustomDialogue("🫏 乘蹇驢而來（字音必考）", "PLAYER", [
+                            "【原著描寫】「行次靈石旅舍，既設床，爐中看肉且熟。張氏以髮長委地，立梳床前。公（李靖）方刷馬。俄而，有一客，中形，赤髯而虯，乘蹇驢而來，投革囊於爐前，取枕欹臥，看張氏梳頭。」",
+                            {
+                                type: 'QA', id: 'q3',
+                                text: "【國文隨堂考 ③】文中「赤髯而虯，乘蹇驢而來」的「虯」與「蹇」二字，正確讀音為何？",
+                                options: ["ㄐㄧㄡ ／ ㄙㄞˋ", "ㄑㄧㄡˊ ／ ㄐㄧㄢˇ", "ㄖㄢˊ ／ ㄏㄢˊ"],
+                                correctIndex: 1, // 答案為 [2]
+                                wrongText: "❌ 注意字音！「虯」讀作 ㄑㄧㄡˊ（捲曲貌），「蹇」讀作 ㄐㄧㄢˇ（跛腳劣質的驢子）！"
+                            },
+                            "【課文詳解】完全正確（答案為 2）！虯髯客雖騎著不起眼的跛驢，舉止卻豪邁不羈，與李靖夫婦形成強烈戲劇張力！"
+                        ]);
+                    } else {
+                        spawnFloatingText(95, 250, "🫏 蹇驢正悠哉地嚼著青草～", "#fde047", 16);
+                    }
+                }
+            },
+            {
+                x: 310, y: 372, type: 'STOVE', title: '🔥 紅泥火爐與沸騰羊肉',
+                desc: '連按 [E] 扇風烤肉！（原著：爐中看肉，肉熟，靖以手裂食之）',
+                onInteract: () => {
+                    storyFlags.ch2MeatCookedCount++;
+                    spawnSparks(310, 360, '#f97316', 18);
+                    unlockLore(5);
+                    if (storyFlags.ch2MeatCookedCount < 3) {
+                        spawnFloatingText(310, 320, `🔥 扇風催火中... (${storyFlags.ch2MeatCookedCount}/3) 羊肉香氣四溢！`, "#fb923c", 18);
+                    } else {
+                        player.hp = player.maxHp;
+                        player.sp = player.maxSp;
+                        spawnFloatingText(310, 315, "🍖 爐肉熟透！與李靖裂食醇酒，氣血真氣全滿！", "#4ade80", 20);
+                    }
+                }
+            },
+            {
+                x: 597, y: 385, type: 'BAG_TABLE', title: '🗡️ 革囊與寒光匕首',
+                desc: '按 [E] 開啟革囊（原著：取一人頭並心肝，卻頭囊中，以匕首切心肝共食之）',
+                onInteract: () => {
+                    unlockLore(5);
+                    if (!storyFlags.ch2BagInspected) {
+                        storyFlags.ch2BagInspected = true;
+                        player.hp = player.maxHp;
+                        spawnFloatingText(597, 335, "🗡️ 切心肝下酒：豪膽震懾全場！氣血上限永久 +25", "#facc15", 19);
+                    }
+                    startCustomDialogue("🗡️ 開革囊・切心肝共食", "PLAYER", [
+                        "【原著高潮】虯髯客嘆曰：「觀李郎之行，貧士也，何以致斯異人？」李靖亦不隱瞞，具言紅拂夜奔之事。客曰：「然則將何之？」靖曰：「將避地太原。」",
+                        "客曰：「吾故謂非君所能致也。有酒乎？」靖曰：「逆旅之西，乃酒肆也。」靖取酒一斗。既巡，客曰：「吾有少下酒物，李郎能同之乎？」靖曰：「不敢。」",
+                        "於是客開革囊，取出「一人頭並心肝」，把人頭放回袋中，用匕首切心肝與李靖共食！曰：「此人天下負心者，銜之十年，今始獲之，吾憾釋矣！」"
+                    ]);
+                }
+            }
+        ],
+        npcs: [
+            {
+                x: 615, y: 205, name: "紅拂女 (張出塵)", title: "【臨軒梳頭・機智認兄】", role: "HONGFU",
+                dialogues: [
+                    "【原著心理描寫】方才大哥取枕斜臥看著妾身梳頭，李郎在門外見狀「怒甚，未決，猶刷馬」。妾身卻見大哥龍鳳之姿、絕非尋常狂徒！",
+                    "於是妾身「一手握髮，一手映身搖示靖，令勿怒」，急急梳畢髮髻，上前斂衽問大哥姓氏。得知大哥亦姓張、排行第三，妾身便順勢自稱排行第一，與三兄結為異姓兄妹！",
+                    {
+                        type: 'QA', id: 'q4',
+                        text: "【國文隨堂考 ④】紅拂女「一手握髮，一手映身搖示靖，令勿怒」，這個細節展現了她在風塵三俠中具備何種關鍵特質？",
+                        options: ["生性膽小怕事，不敢得罪陌生人", "貪圖虯髯客行囊中的金銀財寶", "臨危不亂、觀察入微，能化解衝突並慧眼撮合兩位英雄"],
+                        correctIndex: 2, // 答案為 [3]
+                        wrongText: "❌ 再想一下！紅拂女若非臨危不亂、極具智慧，李靖與虯髯客差點就要在客棧大打出手了！"
+                    },
+                    "【課文詳解】答對了（答案為 3）！紅拂女不僅識出李靖，更在客棧化解一場流血衝突！小妹授三兄【紅拂慧眼】祝福（移動速度與回氣速度大幅提升）！"
+                ],
+                onComplete: () => {
+                    storyFlags.ch2HongfuBuff = true;
+                    unlockLore(4);
+                }
+            },
+            {
+                x: 485, y: 205, name: "李靖 (李藥師)", title: "【猶刷馬息怒・衛國公】", role: "LIJING",
+                dialogues: [
+                    "張三兄贖罪！方才見兄臥看拙荊梳頭，愚兄確實怒火中燒，卻又見兄氣勢威猛未敢妄動，只能邊刷馬邊壓抑怒氣（「怒甚，未決，猶刷馬」）。幸得內人搖手暗示，方知三兄乃蓋世奇俠！",
+                    {
+                        type: 'QA', id: 'q5',
+                        text: "【國文隨堂考 ⑤】《虯髯客傳》中運用「三原色人物烘托法」，請問「風塵三俠」在全篇結構中最終是用來烘托哪一位核心人物？",
+                        options: ["唐太宗 李世民（天命所歸的真命天子）", "越國公 楊素（大隋司空）", "東嶽道士（世外高人）"],
+                        correctIndex: 0, // 答案為 [1]
+                        wrongText: "❌ 提示：連風塵三俠這等絕世奇人都要推位讓賢、傾力輔佐的人是誰呢？"
+                    },
+                    "【課文詳解】答對了（答案為 1）！作者以紅拂襯李靖、以李靖夫婦襯虯髯客、最終以三俠烘托真命天子李世民！愚兄授兄【李衛公兵法】（全招式傷害提升 25%）！"
+                ],
+                onComplete: () => {
+                    storyFlags.ch2LijingBuff = true;
+                    unlockLore(5);
+                }
+            },
+            {
+                x: 280, y: 195, name: "東嶽道士", title: "【觀星望氣高人】", role: "TAOIST",
+                dialogues: [
+                    "無量天尊！貧道曾受三弟之託，觀天下星象。見太原之地紫微星（帝星）大盛，必有真命天子應運而生。三弟既聽聞太原有李姓奇人，我們便相約於太原相會！",
+                    {
+                        type: 'QA', id: 'q6',
+                        text: "【國文隨堂考 ⑥】文中有「三次看相／望氣」推進情節，請問道士在劇中扮演的核心作用為何？",
+                        options: ["傳授虯髯客赤龍斬劍法的武學師父", "替隋煬帝鎮守太原的護國法師", "以方外高人的望氣之術進行「複驗」，印證天命確歸李世民"],
+                        correctIndex: 2, // 答案為 [3]
+                        wrongText: "❌ 提示：虯髯客初見李世民後說「吾見之，十得八九，尚須道兄復驗」，道士正是負責複驗天命之人！"
+                    },
+                    "【課文詳解】答對了（答案為 3）！貧道已在客棧開啟【太極回春陣】，站在綠陣內即可恢復氣血！準備好後請由右側前往【汾河古道】！"
+                ],
+                onComplete: () => {
+                    storyFlags.ch2TaoistArray = true;
+                    player.hp = player.maxHp;
+                    player.sp = player.maxSp;
+                    unlockLore(8);
+                }
+            }
+        ],
+        allies: [],
+        enemies: [],
+        portal: { x: 1010, y: 310, w: 105, h: 120, targetChap: 2, label: "➡ 前往【汾河古道】" }
+    },
+
+    // 第三章：汾河古道・太原山隘
+    {
+        title: "第三章【汾河古道・太原山隘】",
+        sub: "風塵三俠同行並肩作戰・解開三座唐傳奇石碑・擊破虎賁中郎將",
+        spawn: { x: 110, y: 380 },
+        walls: [],
+        destructibles: [
+            { x: 290, y: 490, type: 'CRATE', hp: 30, broken: false },
+            { x: 560, y: 490, type: 'JAR', hp: 25, broken: false },
+            { x: 810, y: 490, type: 'CRATE', hp: 30, broken: false }
+        ],
+        props: [
+            {
+                x: 280, y: 175, type: 'TABLET', idx: 0, title: '🗿 唐傳奇石碑【壹・字義考驗】',
+                desc: '按 [E] 破解古碑文意，解開三碑可開啟黃金秘寶箱',
+                onInteract: () => solveTabletQuiz(0)
+            },
+            {
+                x: 540, y: 175, type: 'TABLET', idx: 1, title: '🗿 唐傳奇石碑【貳・情節考驗】',
+                desc: '按 [E] 破解古碑文意，解開三碑可開啟黃金秘寶箱',
+                onInteract: () => solveTabletQuiz(1)
+            },
+            {
+                x: 800, y: 175, type: 'TABLET', idx: 2, title: '🗿 唐傳奇石碑【參・字音考驗】',
+                desc: '按 [E] 破解古碑文意，解開三碑可開啟黃金秘寶箱',
+                onInteract: () => solveTabletQuiz(2)
+            },
+            {
+                x: 540, y: 575, type: 'GOLD_CHEST', title: '🎁 太原古道・黃金秘寶箱',
+                desc: '解開上方三座石碑即可開啟（內含 180 五銖錢與氣血上限 +35）',
+                onInteract: () => {
+                    if (storyFlags.ch3GoldChestOpened) {
+                        spawnFloatingText(540, 535, "寶箱已開啟過囉！", "#fde047", 16);
+                        return;
+                    }
+                    if (storyFlags.ch3TabletsSolved.every(Boolean)) {
+                        storyFlags.ch3GoldChestOpened = true;
+                        player.coins += 180;
+                        player.hp = player.maxHp;
+                        updateNavBadges();
+                        spawnSparks(540, 565, '#facc15', 35);
+                        spawnFloatingText(540, 525, "🏆 開啟黃金秘寶箱！獲得 +180 五銖錢 & 氣血上限 +35！", "#facc15", 21);
+                    } else {
+                        let solvedCount = storyFlags.ch3TabletsSolved.filter(Boolean).length;
+                        spawnFloatingText(540, 535, `🔒 需先解開上方三座唐傳奇石碑 (${solvedCount}/3)！`, "#f87171", 17);
+                    }
+                }
+            }
+        ],
+        npcs: [],
+        allies: [
+            { x: 170, y: 330, name: "李靖 (助戰)", role: "LIJING", cooldown: 0 },
+            { x: 170, y: 430, name: "紅拂女 (助戰)", role: "HONGFU", cooldown: 20 }
+        ],
+        enemies: [
+            new Enemy(450, 340, "隋軍斥候", "MINION", 110, 12, false),
+            new Enemy(650, 410, "隋軍長矛手", "MINION", 110, 12, false),
+            new Enemy(720, 290, "隋軍甲士", "MINION", 120, 13, false),
+            new Enemy(890, 370, "隋朝虎賁中郎將", "BOSS_1", 360, 18, true)
+        ],
+        portal: { x: 1010, y: 310, w: 105, h: 120, targetChap: 3, label: "➡ 前往【太原行館】" }
+    },
+
+    // 第四章：太原行館・弈棋觀氣
+    {
+        title: "第四章【太原行館・弈棋觀氣】",
+        sub: "劉文靜引見・漢白玉棋盤對弈・李世民裼裘而來・此局全輸矣",
+        spawn: { x: 120, y: 350 },
+        walls: [],
+        destructibles: [
+            { x: 340, y: 540, type: 'CRATE', hp: 35, broken: false },
+            { x: 780, y: 540, type: 'JAR', hp: 30, broken: false }
+        ],
+        props: [
+            {
+                x: 570, y: 340, type: 'GO_BOARD', title: '♟️ 漢白玉圍棋盤（太原弈棋名場面）',
+                desc: '按 [E] 或點擊棋盤落子，觸發李世民登場與「此局全輸矣」雙關語高潮！',
+                onInteract: () => triggerGoBoardClimax()
+            }
+        ],
+        npcs: [
+            {
+                x: 240, y: 185, name: "劉文靜", title: "【太原李氏心腹謀士】", role: "LIUWENJING",
+                dialogues: [
+                    "藥師兄！你說這位張三兄欲觀「真命天子」之相？巧極了！文靜正與東嶽道長在中央【漢白玉圍棋盤】飛棋對弈，並已飛書迎請唐公子（李世民）前來觀棋！",
+                    {
+                        type: 'QA', id: 'q10',
+                        text: "【國文隨堂考 ⑩】李世民出場時「不衫不履，裼裘而來，神氣揚揚，貌與常異」，請問「不衫不履，裼裘而來」的寫作效果為何？",
+                        options: ["側面烘托李世民瀟灑不羈、不靠華服襯托卻自帶天生帝王威儀", "說明太原氣候炎熱，因此大家都不穿外衣", "暗示李世民家道中落，連正式衣冠都買不起"],
+                        correctIndex: 0, // 答案為 [1]
+                        wrongText: "❌ 提示：「裼裘（ㄒㄧ ㄑㄧㄡˊ）」指袒開皮裘露出內衣，正是為了烘托他不拘小節卻自帶真龍氣場！"
+                    },
+                    "【課文詳解】答對了（答案為 1）！快去點擊中央【漢白玉圍棋盤】觀棋！面對攔路的驍果衛大統領，文靜也會在後方射箭助陣！"
+                ],
+                onComplete: () => {
+                    storyFlags.ch4LiuSpoken = true;
+                    unlockLore(7);
+                }
+            },
+            {
+                x: 455, y: 185, name: "東嶽道士", title: "【對弈觀相】", role: "TAOIST",
+                dialogues: [
+                    "三弟，快去點擊中央的【漢白玉圍棋盤】！待唐公子李世民一到，這天下棋局究竟鹿死誰手，便見分曉！"
+                ]
+            }
+        ],
+        allies: [
+            { x: 240, y: 245, name: "劉文靜 (神射支援)", role: "LIUWENJING", cooldown: 0 }
+        ],
+        enemies: [
+            new Enemy(760, 250, "驍果衛精兵", "MINION", 140, 14, false),
+            new Enemy(760, 440, "驍果衛精兵", "MINION", 140, 14, false),
+            new Enemy(890, 350, "大隋驍果衛大統領", "BOSS_2", 520, 22, true)
+        ],
+        portal: { x: 1010, y: 310, w: 105, h: 120, targetChap: 4, label: "➡ 前往【洛陽虯髯宅】" }
+    },
+
+    // 第五章：洛陽虯髯宅・傾囊相授
+    {
+        title: "第五章【洛陽虯髯宅・傾囊相授】",
+        sub: "二十床家財與兵書贈李靖・八陣圖宗師試煉・十萬檣帆入扶餘",
+        spawn: { x: 120, y: 360 },
+        walls: [],
+        destructibles: [],
+        props: [
+            {
+                x: 370, y: 170, type: 'TREASURE_VAULT', title: '💎 二十床奇珍家財文簿',
+                desc: '按 [E] 開啟寶庫（原著：命奴開二十床，盡以家財文簿相贈）',
+                onInteract: () => {
+                    unlockLore(9);
+                    if (storyFlags.ch5ChestsOpened < 2) {
+                        storyFlags.ch5ChestsOpened++;
+                        player.coins += 200;
+                        updateNavBadges();
+                        spawnSparks(370, 170, '#facc15', 30);
+                        spawnFloatingText(370, 130, "💎 清點二十床奇珍家財！獲得 +200 五銖錢！", "#facc15", 20);
+                    } else {
+                        spawnFloatingText(370, 130, "💎 二十床奇珍異寶與鑰匙已全數交託李靖夫婦！", "#fde047", 17);
+                    }
+                }
+            },
+            {
+                x: 800, y: 170, type: 'BOOKSHELF', title: '📚 兵法與推背文簿書閣',
+                desc: '按 [E] 翻閱兵書（原著：虯髯客盡傳兵法予李靖，成就大唐衛國公）',
+                onInteract: () => {
+                    unlockLore(9);
+                    unlockLore(10);
+                    player.hp = player.maxHp;
+                    player.sp = player.maxSp;
+                    startCustomDialogue("📚 傾囊相授・海外扶餘之約", "PLAYER", [
+                        "【原著感人離別】虯髯客與其妻設宴款待李靖與紅拂女，命家僮陳列二十床珍寶與文簿鑰匙，對李靖曰：「此盡某之所有，悉以充贈！某本欲於此世界求事，今既遇真主，吾將何求？」",
+                        {
+                            type: 'QA', id: 'q11',
+                            text: "【國文隨堂考 ⑪】虯髯客將全部中原家產送給李靖佐助李世民後，與李靖約定十餘年後在哪裡開創基業？",
+                            options: ["西域高昌國", "漠北突厥汗國", "海外東南方的「扶餘國」（以海船千艘、甲兵十萬自立為王）"],
+                            correctIndex: 2, // 答案為 [3]
+                            wrongText: "❌ 提示：貞觀十年，南蠻奏報有海船千艘、甲兵十萬入「扶餘國」，殺其主自立！"
+                        },
+                        "【課文詳解】完全正確（答案為 3）！領悟兵書奧義後氣血真氣全滿！現在可去畫面中央啟動【八陣圖試煉台】進行最終決戰！"
+                    ]);
+                }
+            },
+            {
+                x: 640, y: 380, type: 'EIGHT_ARRAY', title: '☯️ 【八陣圖・兵法大宗師試煉台】',
+                desc: '按 [E] 啟動最終試煉 Boss 戰，擊敗宗師即可解鎖「十萬檣帆入扶餘」大結局！',
+                onInteract: () => {
+                    const chap = chapters[4];
+                    if (chap.enemies.some(e => !e.dead)) {
+                        spawnFloatingText(640, 330, "⚔️ 試煉已經啟動！請擊敗八陣兵法宗師！", "#f87171", 18);
+                        return;
+                    }
+                    storyFlags.ch5TrialStarted = true;
+                    screenShake = 15;
+                    spawnSparks(640, 380, '#c084fc', 40);
+                    spawnFloatingText(640, 320, "⚡ 八陣圖啟動！【八陣兵法大宗師】現身！", "#e879f9", 22);
+                    chap.enemies.push(new Enemy(780, 380, "八陣兵法大宗師", "BOSS_3", 600, 24, true));
+                    chap.enemies.push(new Enemy(720, 260, "八陣金甲武士", "MINION", 150, 14, false));
+                    chap.enemies.push(new Enemy(720, 500, "八陣金甲武士", "MINION", 150, 14, false));
+                }
+            }
+        ],
+        npcs: [
+            {
+                x: 210, y: 210, name: "虯髯客之妻與紅拂女", title: "【天人之姿・瀝酒拜賀】", role: "WIFE",
+                dialogues: [
+                    "【原著描寫】李靖與紅拂女依約來到洛陽豪宅，虯髯客引其妻出拜，「亦天人也」！四人極歡對飲，展現豪俠眷屬的超凡氣度。",
+                    {
+                        type: 'QA', id: 'q12',
+                        text: "【國文隨堂考 ⑫】文末總結：「乃知真人之興也，非英雄所冀，況非英雄乎？人臣之謬思亂者，乃螳臂拒輪耳。」作者杜光庭藉此表達的核心主旨為何？",
+                        options: ["強調真命天子乃天命所歸，勸誡唐末藩鎮勿妄動干戈，並讚頌豪俠知命讓賢的胸襟", "鼓勵天下百姓起兵推翻唐朝", "批評李靖接受虯髯客的財產是不義之舉"],
+                        correctIndex: 0, // 答案為 [1]
+                        wrongText: "❌ 提示：「螳臂拒輪」比喻不自量力，杜光庭藉此警惕唐末藩鎮不可妄想叛亂，同時歌頌虯髯客識天命的氣度！"
+                    },
+                    "【課文詳解】答對了（答案為 1）！點擊中央【八陣圖試煉台】通過最終考驗，或點擊頂部【🏆 報告總結】即可檢視完整的國文課報告成績單！"
+                ],
+                onComplete: () => {
+                    unlockLore(10);
+                    unlockLore(12);
+                }
+            }
+        ],
+        allies: [
+            { x: 260, y: 430, name: "李靖 (衛國公助陣)", role: "LIJING", cooldown: 0 },
+            { x: 260, y: 505, name: "紅拂女 (一品夫人助陣)", role: "HONGFU", cooldown: 15 }
+        ],
+        enemies: [],
+        portal: { x: 1010, y: 310, w: 105, h: 120, targetChap: 0, label: "🔄 重返第一章巡禮" }
+    }
+];
+
+// 第三章：三座唐傳奇石碑解謎問答 (答案分佈於 1、3、2)
+function solveTabletQuiz(idx) {
+    if (storyFlags.ch3TabletsSolved[idx]) {
+        spawnFloatingText(player.x, player.y - 40, "✨ 此座石碑已成功解開！", "#4ade80", 17);
+        return;
+    }
+    const quizzes = [
+        {
+            title: "🗿 唐傳奇石碑【壹・古文字義考驗】",
+            qId: 'q7',
+            question: "【國文隨堂考 ⑦】文中「靖歸逆旅」、「將適太原，行次靈石」的「逆旅」與「行次」，在古文中的意思分別為何？",
+            options: ["迎客之處（客棧旅店） ／ 出行途中停留駐紮", "逆風旅行 ／ 行走的次數", "叛軍軍營 ／ 行軍的次序"],
+            correctIndex: 0, // 答案為 [1]
+            wrongText: "❌ 記起來喔！「逆旅」即迎客止宿的旅店（客棧）；「次」指旅途停留駐紮！",
+            afterText: "✨【課文詳解】答對了（答案為 1）！石碑【壹】散發金光，成功解開古文字義封印！"
+        },
+        {
+            title: "🗿 唐傳奇石碑【貳・人物關係考驗】",
+            qId: 'q8',
+            question: "【國文隨堂考 ⑧】紅拂女為何能與虯髯客結拜為「異姓兄妹」，並稱呼虯髯客為「三兄」？",
+            options: ["因為兩人都曾經在司空楊素府中當差", "因為兩人拜東嶽道士為同門師父", "因為紅拂女本姓張（行一），虯髯客亦自稱姓張且在族中排行第三"],
+            correctIndex: 2, // 答案為 [3]
+            wrongText: "❌ 提示：客棧中虯髯客問「張氏何行？」，紅拂女答「最長」，虯髯客喜曰：「今日多幸，逢一妹！」",
+            afterText: "✨【課文詳解】答對了（答案為 3）！石碑【貳】散發金光，成功解開風塵三俠結義典故！"
+        },
+        {
+            title: "🗿 唐傳奇石碑【參・字音與成語考驗】",
+            qId: 'q9',
+            question: "【國文隨堂考 ⑨】結局「有海船千艘，甲兵十萬，入扶餘國……靖與張氏具衣拜賀，瀝酒東南祝拜之」，「檣帆」與「瀝酒」讀音為何？",
+            options: ["ㄙㄜˋ ㄈㄢˊ ／ ㄌㄧˊ ㄐㄧㄡˇ", "ㄑㄧㄤˊ ㄈㄢˊ ／ ㄌㄧˋ ㄐㄧㄡˇ", "ㄑㄧㄤˊ ㄈㄢˊ ／ ㄉㄧ ㄐㄧㄡˇ"],
+            correctIndex: 1, // 答案為 [2]
+            wrongText: "❌ 注意字音！「檣」讀 ㄑㄧㄤˊ（船桅），「瀝」讀 ㄌㄧˋ（灑酒於地祭祝）！",
+            afterText: "✨【課文詳解】答對了（答案為 2）！檢查三座石碑是否皆已解開，快去下方開啟【黃金秘寶箱】！"
+        }
+    ];
+
+    const q = quizzes[idx];
+    unlockLore(11);
+    startCustomDialogue(q.title, "TAOIST", [
+        {
+            type: 'QA', id: q.qId,
+            text: q.question,
+            options: q.options,
+            correctIndex: q.correctIndex,
+            wrongText: q.wrongText
+        },
+        q.afterText
+    ], () => {
+        storyFlags.ch3TabletsSolved[idx] = true;
+        spawnSparks(player.x, player.y, '#facc15', 25);
+        if (storyFlags.ch3TabletsSolved.every(Boolean)) {
+            spawnFloatingText(540, 520, "🔓 三座石碑全數解開！下方【黃金秘寶箱】已解鎖！", "#facc15", 22);
+        }
+    });
+}
+
+// 第四章：漢白玉圍棋盤觸發李世民登場與「此局全輸矣」高潮
+function triggerGoBoardClimax() {
+    unlockLore(6);
+    unlockLore(7);
+    unlockLore(8);
+    storyFlags.ch4ChessPlayed = true;
+
+    const chap = chapters[3];
+    if (!storyFlags.ch4ShiminSpawned) {
+        storyFlags.ch4ShiminSpawned = true;
+        chap.npcs.push({
+            x: 570, y: 215, name: "李世民 (秦王・唐太宗)", title: "【龍鳳之姿・天日之表】", role: "SHIMIN",
+            dialogues: [
+                "世民見過道長與諸位俠士！方才聽聞劉文靜先生與道長在此對弈，世民特來觀棋請益！",
+                "【原著描寫】只見年方二十的李世民「不衫不履，裼裘而來，神氣揚揚，貌與常異；顧盼煒如，一座驚懾」！",
+                "【道士雙關名言】東嶽道士見之慘然，斂棋子曰：「此局全輸矣！輸卻靈心一著，全盤皆休！於此失卻局，奇哉！救無路矣！」（雙關：表面說圍棋輸了，實則指虯髯客爭奪天下之局已全輸給真命天子李世民！）"
+            ]
+        });
+        screenShake = 12;
+        shockwaves.push({ x: 570, y: 215, r: 10, maxR: 220, color: '#facc15', alpha: 1 });
+        spawnSparks(570, 215, '#fde047', 40);
+    }
+
+    startCustomDialogue("♟️ 太原弈棋・「此局全輸矣」雙關高潮", "SHIMIN", [
+        "【高潮名場面】劉文靜與東嶽道士正在漢白玉棋盤飛棋對弈，虯髯客與李靖立於一旁觀戰。俄而，李世民不衫不履、裼裘而來，神采飛揚，向眾人揖曰：「揖諸君！」",
+        "道士一見李世民龍鳳之姿，臉色慘然劇變，推開棋子嘆道：「此局全輸矣！於此失卻局，奇哉！救無路矣！」罷奕請去。",
+        "出門後，道士對虯髯客直言：「此世界非公世界，他方圖之可也。勉之，勿以為念！」虯髯客亦嘆曰：「吾見之，十得八九，今道兄亦云如此，真天子也！李郎宜勉力輔之！」"
+    ]);
+}
+
+function switchChapter(targetIdx) {
+    if (targetIdx < 0 || targetIdx >= chapters.length) return;
+    gameState = STATE.TRANSITION;
+    transitionPhase = 1;
+    nextChapterTarget = targetIdx;
+}
+
+function applyChapterChange(idx) {
+    currentChapterIdx = idx;
+    const chap = chapters[idx];
+    player.x = chap.spawn.x;
+    player.y = chap.spawn.y;
+    projectiles = [];
+    groundLoots = [];
+    bannerTitle = chap.title;
+    bannerSub = chap.sub;
+    bannerTimer = 160;
+
+    document.querySelectorAll('.btn-chap').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.chap) === idx);
+    });
+}
+
+// --- 對話與互動系統 ---
+let dialogueQueue = [];
+let currentDialogueIndex = 0;
+let currentCharIndex = 0;
+let currentSpeaker = "";
+let currentSpeakerRole = "PLAYER";
+let currentDialogueCallback = null;
+let qaFeedback = "";
+let qaFeedbackColor = "#fff";
+let qaLocked = false;
+let optionHitboxes = [];
+const dialogueRect = { x: 40, y: LOGICAL_H - 225, w: LOGICAL_W - 80, h: 202 };
+
+function startCustomDialogue(speakerName, roleKey, lines, onDone = null) {
+    gameState = STATE.DIALOGUE;
+    currentSpeaker = speakerName;
+    currentSpeakerRole = roleKey;
+    dialogueQueue = lines;
+    currentDialogueIndex = 0;
+    currentCharIndex = 0;
+    currentDialogueCallback = onDone;
+    qaFeedback = "";
+    qaLocked = false;
+}
+
+function tryInteract() {
+    const chap = chapters[currentChapterIdx];
+    for (let p of chap.props) {
+        if (Math.hypot(player.x - p.x, player.y - p.y) < 95) {
+            if (p.onInteract) p.onInteract();
+            return;
+        }
+    }
+    for (let npc of chap.npcs) {
+        if (Math.hypot(player.x - npc.x, player.y - npc.y) < 95) {
+            startCustomDialogue(npc.name, npc.role, npc.dialogues, npc.onComplete || null);
+            return;
+        }
+    }
+    spawnFloatingText(player.x, player.y - 35, "請走近發光物件或人物再按 [E] 互動", "#a8a29e", 14);
+}
+
+function advanceDialogue() {
+    let lineObj = dialogueQueue[currentDialogueIndex];
+    let isQA = (typeof lineObj === 'object' && lineObj.type === 'QA');
+    let fullText = isQA ? lineObj.text : (lineObj || "");
+
+    if (currentCharIndex < fullText.length) {
+        currentCharIndex = fullText.length;
+        return;
+    }
+    if (isQA) return;
+
+    currentDialogueIndex++;
+    currentCharIndex = 0;
+    qaFeedback = "";
+    if (currentDialogueIndex >= dialogueQueue.length) {
+        gameState = STATE.PLAY;
+        if (currentDialogueCallback) {
+            currentDialogueCallback();
+            currentDialogueCallback = null;
+        }
+    }
+}
+
+function submitQAAnswer(choiceIdx) {
+    if (qaLocked) return;
+    let lineObj = dialogueQueue[currentDialogueIndex];
+    if (!lineObj || lineObj.type !== 'QA') return;
+
+    if (choiceIdx === lineObj.correctIndex) {
+        qaLocked = true;
+        qaFeedback = `✨【答對了！正確答案是 [${choiceIdx + 1}]！獲得 +45 五銖錢獎勵！】✨`;
+        qaFeedbackColor = "#4ade80";
+        if (lineObj.id) stats.qaSolvedSet.add(lineObj.id);
+        player.coins += 45;
+        updateNavBadges();
+        spawnSparks(player.x, player.y, '#facc15', 22);
+
+        setTimeout(() => {
+            qaLocked = false;
+            qaFeedback = "";
+            currentDialogueIndex++;
+            currentCharIndex = 0;
+            if (currentDialogueIndex >= dialogueQueue.length) {
+                gameState = STATE.PLAY;
+                if (currentDialogueCallback) {
+                    currentDialogueCallback();
+                    currentDialogueCallback = null;
+                }
+            }
+        }, 850);
+    } else {
+        qaFeedback = lineObj.wrongText;
+        qaFeedbackColor = "#f87171";
+        screenShake = 5;
+    }
+}
+
+const keys = {};
+let mousePos = { x: 0, y: 0 };
+
+window.addEventListener('keydown', e => {
+    keys[e.code] = true;
+    if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+        e.preventDefault();
+    }
+
+    if (gameState === STATE.DIALOGUE) {
+        let lineObj = dialogueQueue[currentDialogueIndex];
+        let isQA = (typeof lineObj === 'object' && lineObj.type === 'QA');
+        let fullText = isQA ? lineObj.text : (lineObj || "");
+
+        if (isQA && currentCharIndex >= fullText.length) {
+            if (e.code === 'Digit1' || e.code === 'Numpad1') submitQAAnswer(0);
+            if (e.code === 'Digit2' || e.code === 'Numpad2') submitQAAnswer(1);
+            if (e.code === 'Digit3' || e.code === 'Numpad3') submitQAAnswer(2);
+        } else if (e.code === 'Space' || e.code === 'KeyE' || e.code === 'Enter') {
+            advanceDialogue();
+        }
+    } else if (gameState === STATE.PLAY) {
+        if (e.code === 'KeyE' || e.code === 'Space') tryInteract();
+        if (e.code === 'KeyJ') player.attack();
+        if (e.code === 'KeyK') player.castDragonSlash();
+        if (e.code === 'KeyU') player.castEarthShatter();
+        if (e.code === 'KeyI') player.castThreeHeroesUlt();
+        if (e.code === 'KeyL') player.dash();
+    }
+});
+
+window.addEventListener('keyup', e => { keys[e.code] = false; });
+window.addEventListener('blur', () => { for (let k in keys) keys[k] = false; });
+
+canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    mousePos.x = (e.clientX - rect.left) * (LOGICAL_W / rect.width);
+    mousePos.y = (e.clientY - rect.top) * (LOGICAL_H / rect.height);
+});
+
+canvas.addEventListener('mousedown', e => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (LOGICAL_W / rect.width);
+    const my = (e.clientY - rect.top) * (LOGICAL_H / rect.height);
+
+    if (gameState === STATE.DIALOGUE) {
+        let lineObj = dialogueQueue[currentDialogueIndex];
+        let isQA = (typeof lineObj === 'object' && lineObj.type === 'QA');
+        let fullText = isQA ? lineObj.text : (lineObj || "");
+        if (isQA && currentCharIndex >= fullText.length) {
+            for (let i = 0; i < optionHitboxes.length; i++) {
+                let b = optionHitboxes[i];
+                if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h) {
+                    submitQAAnswer(i);
+                    return;
+                }
+            }
+        } else {
+            advanceDialogue();
+        }
+    } else if (gameState === STATE.PLAY) {
+        const chap = chapters[currentChapterIdx];
+        for (let p of chap.props) {
+            if (Math.hypot(mx - p.x, my - p.y) < 52) {
+                if (Math.hypot(player.x - p.x, player.y - p.y) < 165) {
+                    p.onInteract();
+                } else {
+                    spawnFloatingText(p.x, p.y - 35, "請操作角色走近一點再點擊互動！", "#fde047", 15);
+                }
+                return;
+            }
+        }
+        for (let npc of chap.npcs) {
+            if (Math.hypot(mx - npc.x, my - npc.y) < 48) {
+                if (Math.hypot(player.x - npc.x, player.y - npc.y) < 165) {
+                    startCustomDialogue(npc.name, npc.role, npc.dialogues, npc.onComplete || null);
+                } else {
+                    spawnFloatingText(npc.x, npc.y - 35, "請走近一點再點擊交談！", "#fde047", 15);
+                }
+                return;
+            }
+        }
+    }
+});
+
+// --- AI 夥伴助戰邏輯 ---
+function updateAllies(chap) {
+    if (currentChapterIdx === 1 && storyFlags.ch2TaoistArray) {
+        let d = Math.hypot(player.x - 280, player.y - 195);
+        if (d < 130 && globalTime % 18 === 0) {
+            player.hp = Math.min(player.maxHp, player.hp + 6);
+            player.sp = Math.min(player.maxSp, player.sp + 6);
+            spawnFloatingText(player.x, player.y - 30, "+6 氣血", "#4ade80", 14);
+        }
+    }
+
+    chap.allies.forEach((al, idx) => {
+        let targetX = player.x - 65 + idx * 45;
+        let targetY = player.y + (idx === 0 ? -45 : 45);
+        let distToTarget = Math.hypot(targetX - al.x, targetY - al.y);
+        if (distToTarget > 30) {
+            al.x += (targetX - al.x) * 0.045;
+            al.y += (targetY - al.y) * 0.045;
+        }
+
+        if (al.cooldown > 0) al.cooldown--;
+        if (al.cooldown <= 0) {
+            let nearest = null;
+            let minDist = 520;
+            chap.enemies.forEach(en => {
+                if (!en.dead) {
+                    let d = Math.hypot(en.x - al.x, en.y - al.y);
+                    if (d < minDist) {
+                        minDist = d;
+                        nearest = en;
+                    }
+                }
+            });
+
+            if (nearest) {
+                al.cooldown = 56;
+                let ang = Math.atan2(nearest.y - al.y, nearest.x - al.x);
+                projectiles.push({
+                    type: 'ALLY_SWORD',
+                    fromPlayer: true,
+                    x: al.x,
+                    y: al.y - 8,
+                    vx: Math.cos(ang) * 10.2,
+                    vy: Math.sin(ang) * 10.2,
+                    angle: ang,
+                    r: 16,
+                    dmg: 24 + upgrades.weaponLv * 5,
+                    life: 60,
+                    hitSet: new Set()
+                });
+            }
+        }
+    });
+}
+
+// --- 繪製場景物件、破壞箱與傳送門 ---
+function drawChapterProps(chap) {
+    if (currentChapterIdx === 1 && storyFlags.ch2TaoistArray) {
+        ctx.save();
+        ctx.translate(280, 205);
+        ctx.rotate(globalTime * 0.02);
+        ctx.strokeStyle = 'rgba(74, 222, 128, 0.65)';
+        ctx.fillStyle = 'rgba(34, 197, 94, 0.15)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(0, 0, 120, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    chap.props.forEach(p => {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+
+        if (p.type === 'NOTICE') {
+            ctx.fillStyle = '#5c341d';
+            ctx.fillRect(-40, -28, 80, 54);
+            ctx.fillStyle = '#fef3c7';
+            ctx.fillRect(-32, -20, 64, 38);
+            ctx.fillStyle = '#78350f';
+            ctx.font = 'bold 11px serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('司空府榜文', 0, 2);
+
+        } else if (p.type === 'DONKEY') {
+            // 蹇驢與李靖駿馬
+            ctx.fillStyle = '#57534e';
+            ctx.fillRect(-24, -10, 36, 20);
+            ctx.fillRect(-28, -23, 14, 16);
+            ctx.fillRect(-26, -33, 4, 10);
+            ctx.fillRect(-18, -33, 4, 10);
+            ctx.fillStyle = '#78350f'; // 駿馬在側
+            ctx.fillRect(10, -14, 38, 22);
+            ctx.fillRect(36, -28, 14, 18);
+
+        } else if (p.type === 'STOVE') {
+            ctx.fillStyle = '#7c2d12';
+            ctx.strokeStyle = '#431407';
+            ctx.lineWidth = 3;
+            ctx.fillRect(-60, -42, 120, 84);
+            ctx.strokeRect(-60, -42, 120, 84);
+            let rGrad = ctx.createRadialGradient(0, 0, 5, 0, 0, 70);
+            rGrad.addColorStop(0, 'rgba(249, 115, 22, 0.65)');
+            rGrad.addColorStop(1, 'rgba(249, 115, 22, 0)');
+            ctx.fillStyle = rGrad;
+            ctx.beginPath(); ctx.arc(0, 0, 70, 0, Math.PI * 2); ctx.fill();
+
+            ctx.fillStyle = '#1c1917';
+            ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#b45309';
+            ctx.beginPath(); ctx.arc(0, 0, 24, 0, Math.PI * 2); ctx.fill();
+
+        } else if (p.type === 'BAG_TABLE') {
+            ctx.fillStyle = '#5c341d';
+            ctx.strokeStyle = '#2e180b';
+            ctx.lineWidth = 3;
+            ctx.fillRect(-77, -45, 154, 90);
+            ctx.strokeRect(-77, -45, 154, 90);
+            ctx.fillStyle = '#92400e';
+            ctx.beginPath(); ctx.ellipse(-25, 0, 22, 15, -0.2, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(15, -6, 28, 5);
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillRect(11, -9, 5, 11);
+
+        } else if (p.type === 'TABLET') {
+            let solved = storyFlags.ch3TabletsSolved[p.idx];
+            ctx.fillStyle = solved ? '#065f46' : '#44403c';
+            ctx.strokeStyle = solved ? '#34d399' : '#fbbf24';
+            ctx.lineWidth = 2.5;
+            ctx.fillRect(-28, -40, 56, 76);
+            ctx.strokeRect(-28, -40, 56, 76);
+            ctx.fillStyle = solved ? '#a7f3d0' : '#fde68a';
+            ctx.font = 'bold 14px serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(solved ? '✓已解' : '古碑', 0, 4);
+
+        } else if (p.type === 'GOLD_CHEST' || p.type === 'TREASURE_VAULT') {
+            ctx.fillStyle = '#92400e';
+            ctx.strokeStyle = '#fde047';
+            ctx.lineWidth = 3;
+            ctx.fillRect(-34, -22, 68, 44);
+            ctx.strokeRect(-34, -22, 68, 44);
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillRect(-8, -6, 16, 12);
+
+        } else if (p.type === 'GO_BOARD') {
+            ctx.fillStyle = '#e2e8f0';
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 3;
+            ctx.fillRect(-44, -44, 88, 88);
+            ctx.strokeRect(-44, -44, 88, 88);
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1;
+            for (let i = -30; i <= 30; i += 15) {
+                ctx.beginPath(); ctx.moveTo(i, -30); ctx.lineTo(i, 30); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(-30, i); ctx.lineTo(30, i); ctx.stroke();
+            }
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath(); ctx.arc(-15, -15, 5, 0, Math.PI * 2); ctx.arc(15, 0, 5, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#f8fafc';
+            ctx.beginPath(); ctx.arc(0, -15, 5, 0, Math.PI * 2); ctx.arc(-15, 15, 5, 0, Math.PI * 2); ctx.fill();
+
+        } else if (p.type === 'BOOKSHELF') {
+            ctx.fillStyle = '#451a03';
+            ctx.strokeStyle = '#d97706';
+            ctx.lineWidth = 2;
+            ctx.fillRect(-46, -32, 92, 64);
+            ctx.strokeRect(-46, -32, 92, 64);
+            ctx.fillStyle = '#38bdf8';
+            for (let bx = -35; bx <= 25; bx += 14) {
+                ctx.fillRect(bx, -22, 10, 20);
+                ctx.fillRect(bx, 6, 10, 20);
+            }
+
+        } else if (p.type === 'EIGHT_ARRAY') {
+            ctx.rotate(globalTime * 0.015);
+            ctx.strokeStyle = '#c084fc';
+            ctx.fillStyle = 'rgba(168, 85, 247, 0.18)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(0, 0, 80, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        let dist = Math.hypot(player.x - p.x, player.y - p.y);
+        ctx.save();
+        ctx.textAlign = 'center';
+        if (dist < 105) {
+            ctx.fillStyle = 'rgba(15, 10, 8, 0.94)';
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 1.5;
+            ctx.fillRect(p.x - 185, p.y - 80, 370, 42);
+            ctx.strokeRect(p.x - 185, p.y - 80, 370, 42);
+            ctx.fillStyle = '#fde047';
+            ctx.font = 'bold 13px "Noto Serif TC", sans-serif';
+            ctx.fillText(p.title, p.x, p.y - 62);
+            ctx.fillStyle = '#e7e5e4';
+            ctx.font = '11px sans-serif';
+            ctx.fillText(p.desc, p.x, p.y - 45);
+        } else {
+            ctx.fillStyle = 'rgba(0,0,0,0.7)';
+            ctx.fillRect(p.x - 74, p.y - 54, 148, 19);
+            ctx.fillStyle = '#fde68a';
+            ctx.font = '11px sans-serif';
+            ctx.fillText(p.title, p.x, p.y - 40);
+        }
+        ctx.restore();
+    });
+
+    chap.destructibles.forEach(d => {
+        if (d.broken) return;
+        ctx.save();
+        ctx.translate(d.x, d.y);
+        if (d.type === 'CRATE') {
+            ctx.fillStyle = '#78350f';
+            ctx.strokeStyle = '#451a03';
+            ctx.lineWidth = 2;
+            ctx.fillRect(-18, -18, 36, 36);
+            ctx.strokeRect(-18, -18, 36, 36);
+            ctx.beginPath();
+            ctx.moveTo(-18, -18); ctx.lineTo(18, 18);
+            ctx.stroke();
+        } else {
+            ctx.fillStyle = '#9a3412';
+            ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#dc2626';
+            ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.restore();
+    });
+
+    for (let i = groundLoots.length - 1; i >= 0; i--) {
+        let g = groundLoots[i];
+        let b = Math.sin(globalTime * 0.15 + i) * 3;
+        ctx.save();
+        ctx.fillStyle = g.type === 'COIN' ? '#facc15' : (g.type === 'BUN' ? '#fde68a' : '#38bdf8');
+        ctx.beginPath();
+        ctx.arc(g.x, g.y + b, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(g.label, g.x, g.y - 14 + b);
+        ctx.restore();
+
+        if (Math.hypot(player.x - g.x, player.y - g.y) < 38) {
+            if (g.type === 'COIN') {
+                player.coins += g.amount;
+                updateNavBadges();
+                spawnFloatingText(g.x, g.y, `+${g.amount} 五銖錢`, "#facc15", 17);
+            } else if (g.type === 'BUN') {
+                player.hp = Math.min(player.maxHp, player.hp + g.amount);
+                spawnFloatingText(g.x, g.y, `+${g.amount} 氣血`, "#4ade80", 17);
+            } else {
+                player.sp = Math.min(player.maxSp, player.sp + g.amount);
+                spawnFloatingText(g.x, g.y, `+${g.amount} 真氣`, "#38bdf8", 17);
+            }
+            groundLoots.splice(i, 1);
+        }
+    }
+
+    const pt = chap.portal;
+    let glow = 0.5 + Math.sin(globalTime * 0.1) * 0.25;
+    ctx.save();
+    ctx.fillStyle = `rgba(250, 204, 21, ${glow * 0.35})`;
+    ctx.strokeStyle = '#fde047';
+    ctx.lineWidth = 2.5;
+    ctx.fillRect(pt.x, pt.y, pt.w, pt.h);
+    ctx.strokeRect(pt.x, pt.y, pt.w, pt.h);
+    ctx.fillStyle = '#fef08a';
+    ctx.font = 'bold 13px "Noto Serif TC", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(pt.label, pt.x + pt.w / 2, pt.y + pt.h / 2 + 4);
+    ctx.restore();
+}
+
+// --- 繪製 HUD 與對話框 (含高解析度半身立繪) ---
+function drawHUD(chap) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(16, 11, 8, 0.92)';
+    ctx.strokeStyle = '#b45309';
+    ctx.lineWidth = 2;
+    ctx.fillRect(14, 12, 320, 88);
+    ctx.strokeRect(14, 12, 320, 88);
+
+    ctx.fillStyle = '#fde047';
+    ctx.font = 'bold 14px "Noto Serif TC", sans-serif';
+    ctx.fillText(`虯髯客・${WEAPON_NAMES[upgrades.weaponLv]}`, 26, 32);
+
+    ctx.fillStyle = '#3f1d1d';
+    ctx.fillRect(26, 40, 220, 15);
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(26, 40, 220 * (player.hp / player.maxHp), 15);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.fillText(`氣血 HP: ${Math.ceil(player.hp)} / ${player.maxHp}`, 34, 51);
+
+    ctx.fillStyle = '#172554';
+    ctx.fillRect(26, 61, 220, 14);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(26, 61, 220 * (player.sp / player.maxSp), 14);
+    ctx.fillStyle = '#fff';
+    ctx.fillText(`真氣 SP: ${Math.floor(player.sp)} / ${player.maxSp}`, 34, 72);
+
+    ctx.fillStyle = '#facc15';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.fillText(`💰 ${player.coins} 錢`, 255, 52);
+    ctx.fillStyle = '#a7f3d0';
+    ctx.font = '11px sans-serif';
+    ctx.fillText(`答對:${stats.qaSolvedSet.size}/12`, 255, 72);
+
+    const boss = chap.enemies.find(e => e.isBoss && !e.dead);
+    if (boss) {
+        let bw = 410, bx = (LOGICAL_W - bw) / 2, by = 14;
+        ctx.fillStyle = 'rgba(15, 10, 10, 0.92)';
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 2;
+        ctx.fillRect(bx - 6, by - 4, bw + 12, 42);
+        ctx.strokeRect(bx - 6, by - 4, bw + 12, 42);
+
+        ctx.fillStyle = '#450a0a';
+        ctx.fillRect(bx, by + 16, bw, 14);
+        ctx.fillStyle = '#dc2626';
+        ctx.fillRect(bx, by + 16, bw * (boss.hp / boss.maxHp), 14);
+
+        ctx.fillStyle = '#fde047';
+        ctx.font = 'bold 13px "Noto Serif TC", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`👹 首領戰：【${boss.name}】 ${boss.hp} / ${boss.maxHp}`, LOGICAL_W / 2, by + 11);
+        ctx.textAlign = 'left';
+    }
+
+    if (bannerTimer > 0) {
+        bannerTimer--;
+        let a = Math.min(1, bannerTimer / 30);
+        ctx.save();
+        ctx.globalAlpha = a;
+        ctx.fillStyle = 'rgba(15, 10, 8, 0.92)';
+        ctx.strokeStyle = '#d4af37';
+        ctx.lineWidth = 2;
+        ctx.fillRect(LOGICAL_W / 2 - 245, 68, 490, 56);
+        ctx.strokeRect(LOGICAL_W / 2 - 245, 68, 490, 56);
+        ctx.fillStyle = '#fef08a';
+        ctx.font = 'bold 19px "Noto Serif TC", serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(bannerTitle, LOGICAL_W / 2, 94);
+        ctx.fillStyle = '#d6d3d1';
+        ctx.font = '12px sans-serif';
+        ctx.fillText(bannerSub, LOGICAL_W / 2, 114);
+        ctx.restore();
+    }
+    ctx.restore();
+}
+
+function drawDialogueOverlay() {
+    const bx = dialogueRect.x, by = dialogueRect.y, bw = dialogueRect.w, bh = dialogueRect.h;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+
+    ctx.fillStyle = 'rgba(18, 13, 10, 0.97)';
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 3;
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.strokeRect(bx, by, bw, bh);
+
+    ctx.fillStyle = '#7f1d1d';
+    ctx.fillRect(bx + 16, by - 20, 290, 36);
+    ctx.strokeRect(bx + 16, by - 20, 290, 36);
+    ctx.fillStyle = '#fef08a';
+    ctx.font = 'bold 17px "Noto Serif TC", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(currentSpeaker, bx + 161, by + 4);
+    ctx.textAlign = 'left';
+
+    // 左側高清半身立繪
+    drawHalfBodyPortrait(bx + 18, by + 24, 108, 158, currentSpeakerRole);
+
+    let lineObj = dialogueQueue[currentDialogueIndex];
+    let isQA = (typeof lineObj === 'object' && lineObj.type === 'QA');
+    let fullText = isQA ? lineObj.text : (lineObj || "");
+    let shown = fullText.substring(0, currentCharIndex);
+
+    ctx.fillStyle = isQA ? '#fde047' : '#f5f5f4';
+    ctx.font = 'bold 17px "Noto Serif TC", sans-serif';
+
+    const tx = bx + 144;
+    const maxW = bw - 170;
+    let line = '';
+    let y = by + 44;
+    for (let i = 0; i < shown.length; i++) {
+        let test = line + shown[i];
+        if (ctx.measureText(test).width > maxW && i > 0) {
+            ctx.fillText(line, tx, y);
+            line = shown[i];
+            y += 26;
+        } else {
+            line = test;
+        }
+    }
+    ctx.fillText(line, tx, y);
+
+    optionHitboxes = [];
+    if (isQA && currentCharIndex >= fullText.length) {
+        const optY = by + 96;
+        const optW = 290;
+        const optH = 42;
+        const gap = 12;
+
+        lineObj.options.forEach((opt, idx) => {
+            let ox = tx + idx * (optW + gap);
+            optionHitboxes.push({ x: ox, y: optY, w: optW, h: optH });
+            let hover = (mousePos.x >= ox && mousePos.x <= ox + optW && mousePos.y >= optY && mousePos.y <= optY + optH);
+
+            ctx.fillStyle = hover ? '#854d0e' : '#1c1917';
+            ctx.strokeStyle = hover ? '#fde047' : '#38bdf8';
+            ctx.lineWidth = 2;
+            ctx.fillRect(ox, optY, optW, optH);
+            ctx.strokeRect(ox, optY, optW, optH);
+
+            ctx.fillStyle = hover ? '#fef08a' : '#7dd3fc';
+            ctx.font = 'bold 13px "Noto Serif TC", sans-serif';
+            // 選項文字若過長自動換行顯示
+            let label = `[${idx + 1}] ${opt}`;
+            if (ctx.measureText(label).width > optW - 16) {
+                let mid = Math.floor(label.length / 2);
+                ctx.fillText(label.slice(0, mid), ox + 8, optY + 17);
+                ctx.fillText(label.slice(mid), ox + 8, optY + 34);
+            } else {
+                ctx.fillText(label, ox + 10, optY + 26);
+            }
+        });
+
+        if (qaFeedback) {
+            ctx.fillStyle = qaFeedbackColor;
+            ctx.font = 'bold 15px sans-serif';
+            ctx.fillText(qaFeedback, tx, optY + 66);
+        }
+    }
+
+    if (currentCharIndex >= fullText.length) {
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillStyle = isQA ? '#38bdf8' : '#fbbf24';
+        ctx.fillText(
+            isQA ? '💡 請按數字鍵 [1][2][3] 或滑鼠點擊選項作答' : '▼ 按 [空白鍵 / E] 或滑鼠點擊對話框繼續',
+            bx + bw - 18, by + bh - 12
+        );
+    }
+    ctx.restore();
+}
+
+// --- 主迴圈 ---
+function gameLoop() {
+    globalTime++;
+    const chap = chapters[currentChapterIdx];
+
+    if (gameState === STATE.PLAY) {
+        player.update(chap.walls);
+        updateAllies(chap);
+        chap.enemies.forEach(en => en.update());
+
+        const pt = chap.portal;
+        if (player.x > pt.x && player.x < pt.x + pt.w &&
+            player.y > pt.y && player.y < pt.y + pt.h) {
+            switchChapter(pt.targetChap);
+        }
+    } else if (gameState === STATE.DIALOGUE) {
+        let lineObj = dialogueQueue[currentDialogueIndex];
+        let fullText = (typeof lineObj === 'object' && lineObj.type === 'QA') ? lineObj.text : (lineObj || "");
+        if (currentCharIndex < fullText.length) currentCharIndex += 1.6;
+    } else if (gameState === STATE.TRANSITION) {
+        if (transitionPhase === 1) {
+            transitionAlpha += 0.07;
+            if (transitionAlpha >= 1) {
+                transitionAlpha = 1;
+                applyChapterChange(nextChapterTarget);
+                transitionPhase = 2;
+            }
+        } else if (transitionPhase === 2) {
+            transitionAlpha -= 0.07;
+            if (transitionAlpha <= 0) {
+                transitionAlpha = 0;
+                transitionPhase = 0;
+                gameState = STATE.PLAY;
+            }
+        }
+    }
+
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+        let p = projectiles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+
+        chap.enemies.forEach(en => {
+            if (!en.dead && !p.hitSet.has(en)) {
+                if (Math.hypot(en.x - p.x, en.y - p.y) < p.r + en.r) {
+                    p.hitSet.add(en);
+                    en.takeDamage(p.dmg, p.vx * 1.1, p.vy * 1.1, p.type === 'DRAGON');
+                    if (p.type !== 'DRAGON') p.life = 0;
+                }
+            }
+        });
+
+        if (p.life <= 0 || p.x < 0 || p.x > LOGICAL_W || p.y < 0 || p.y > LOGICAL_H) {
+            projectiles.splice(i, 1);
+        }
+    }
+
+    for (let i = sparks.length - 1; i >= 0; i--) {
+        let s = sparks[i];
+        s.x += s.vx; s.y += s.vy;
+        s.vx *= 0.9; s.vy *= 0.9;
+        s.alpha -= 0.04;
+        if (s.alpha <= 0) sparks.splice(i, 1);
+    }
+    for (let i = shockwaves.length - 1; i >= 0; i--) {
+        let sw = shockwaves[i];
+        sw.r += 8;
+        sw.alpha -= 0.045;
+        if (sw.alpha <= 0) shockwaves.splice(i, 1);
+    }
+    for (let i = floatingTexts.length - 1; i >= 0; i--) {
+        let ft = floatingTexts[i];
+        ft.y += ft.vy;
+        ft.alpha -= 0.02;
+        if (ft.alpha <= 0) floatingTexts.splice(i, 1);
+    }
+
+    ctx.save();
+    if (screenShake > 0) {
+        ctx.translate((Math.random() - 0.5) * screenShake * 1.6, (Math.random() - 0.5) * screenShake * 1.6);
+        screenShake *= 0.85;
+        if (screenShake < 0.5) screenShake = 0;
+    }
+
+    ctx.drawImage(chapterCanvases[currentChapterIdx], 0, 0);
+    drawChapterProps(chap);
+
+    shockwaves.forEach(sw => {
+        ctx.save();
+        ctx.strokeStyle = sw.color || '#fbbf24';
+        ctx.globalAlpha = Math.max(0, sw.alpha);
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+    });
+
+    let entities = [
+        { y: player.y, draw: () => player.draw() },
+        ...chap.npcs.map(n => ({
+            y: n.y,
+            draw: () => {
+                drawCharacterSprite(n.x, n.y, n.role, false, 0, false);
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.font = 'bold 11px sans-serif';
+                ctx.fillStyle = '#fde047';
+                ctx.fillText(n.title, n.x, n.y - 54);
+                ctx.font = 'bold 14px "Noto Serif TC", sans-serif';
+                ctx.fillStyle = '#fff';
+                ctx.fillText(n.name, n.x, n.y - 38);
+                ctx.restore();
+            }
+        })),
+        ...chap.allies.map(al => ({
+            y: al.y,
+            draw: () => {
+                drawCharacterSprite(al.x, al.y, al.role, true, globalTime * 0.15, false);
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillText(al.name, al.x, al.y - 40);
+                ctx.restore();
+            }
+        })),
+        ...chap.enemies.map(e => ({ y: e.y, draw: () => e.draw() }))
+    ];
+    entities.sort((a, b) => a.y - b.y);
+    entities.forEach(ent => ent.draw());
+
+    projectiles.forEach(p => {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
+        if (p.type === 'DRAGON') {
+            ctx.fillStyle = '#ef4444';
+            ctx.shadowColor = '#f97316';
+            ctx.shadowBlur = 18;
+            ctx.beginPath();
+            ctx.arc(0, 0, 32, -Math.PI / 2.2, Math.PI / 2.2);
+            ctx.lineTo(-20, 0);
+            ctx.closePath();
+            ctx.fill();
+        } else {
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(-14, 0); ctx.lineTo(14, 0);
+            ctx.stroke();
+        }
+        ctx.restore();
+    });
+
+    sparks.forEach(s => {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, s.alpha);
+        ctx.fillStyle = s.color;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    });
+
+    floatingTexts.forEach(ft => {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, ft.alpha);
+        ctx.font = `bold ${ft.size}px "Noto Serif TC", sans-serif`;
+        ctx.fillStyle = ft.color;
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 3;
+        ctx.textAlign = 'center';
+        ctx.strokeText(ft.text, ft.x, ft.y);
+        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.restore();
+    });
+
+    ctx.restore();
+
+    drawHUD(chap);
+    if (gameState === STATE.DIALOGUE) drawDialogueOverlay();
+
+    if (transitionAlpha > 0) {
+        ctx.fillStyle = `rgba(0,0,0,${transitionAlpha})`;
+        ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+
+// --- UI 面板渲染與按鈕綁定 ---
+function updateNavBadges() {
+    document.getElementById('nav-coin-badge').textContent = `(${player.coins}錢)`;
+    let unlockedCount = LORE_ENTRIES.filter(e => e.unlocked).length;
+    document.getElementById('nav-lore-badge').textContent = `(${unlockedCount}/12)`;
+}
+
+function renderForgeModal() {
+    document.getElementById('forge-coin-display').textContent = `💰 ${player.coins}`;
+    const container = document.getElementById('forge-items-container');
+    const list = [
+        {
+            key: 'weaponLv',
+            title: `🗡️ 隨身神兵：${WEAPON_NAMES[upgrades.weaponLv]} (Lv.${upgrades.weaponLv}/4)`,
+            desc: `當前基礎攻擊力：${player.atkPower} 點（升級可強化連斬與赤龍斬威力並改變神兵造型）`,
+            cost: upgrades.weaponLv * 75
+        },
+        {
+            key: 'armorLv',
+            title: `🛡️ 護身寶甲：${ARMOR_NAMES[upgrades.armorLv]} (Lv.${upgrades.armorLv}/4)`,
+            desc: `提供氣血上限加成與減傷效果（當前最大氣血：${player.maxHp}）`,
+            cost: upgrades.armorLv * 70
+        },
+        {
+            key: 'qiLv',
+            title: `☯️ 先天內功：${QI_NAMES[upgrades.qiLv]} (Lv.${upgrades.qiLv}/4)`,
+            desc: `提升真氣上限與回氣速度，更頻繁施放「裂地破」與「風塵三俠合擊」`,
+            cost: upgrades.qiLv * 65
+        }
+    ];
+
+    container.innerHTML = list.map(item => {
+        let isMax = upgrades[item.key] >= 4;
+        return `
+            <div class="flex items-center justify-between bg-black/55 border border-stone-700 p-3.5 rounded-lg">
+                <div>
+                    <div class="text-amber-300 font-bold text-sm md:text-base">${item.title}</div>
+                    <div class="text-stone-400 text-xs mt-0.5">${item.desc}</div>
+                </div>
+                <button data-upg="${item.key}" data-cost="${item.cost}"
+                    class="px-4 py-2 rounded font-bold text-xs cursor-pointer ${isMax ? 'bg-stone-800 text-stone-500' : 'btn-epic'}">
+                    ${isMax ? '已達頂級' : `💰 ${item.cost} 錢升級`}
+                </button>
+            </div>
+        `;
+    }).join('');
+
+    container.querySelectorAll('button[data-upg]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            let key = btn.dataset.upg;
+            let cost = parseInt(btn.dataset.cost);
+            if (upgrades[key] >= 4) return;
+            if (player.coins >= cost) {
+                player.coins -= cost;
+                upgrades[key]++;
+                player.hp = player.maxHp;
+                player.sp = player.maxSp;
+                updateNavBadges();
+                renderForgeModal();
+            } else {
+                btn.textContent = "五銖錢不足！";
+            }
+        });
+    });
+}
+
+function renderLoreModal() {
+    const grid = document.getElementById('lore-grid');
+    grid.innerHTML = LORE_ENTRIES.map(item => `
+        <div class="p-3.5 rounded-lg border ${item.unlocked ? 'bg-stone-900/90 border-amber-500/60' : 'bg-black/40 border-stone-800 opacity-60'}">
+            <div class="flex justify-between items-center mb-1.5">
+                <span class="font-bold text-sm ${item.unlocked ? 'text-amber-300' : 'text-stone-500'}">${item.title}</span>
+                <span class="px-2 py-0.5 rounded text-[11px] ${item.unlocked ? 'bg-amber-950 text-amber-200 border border-amber-600/50' : 'bg-stone-800 text-stone-400'}">${item.tag}</span>
+            </div>
+            <p class="text-xs leading-relaxed ${item.unlocked ? 'text-stone-200' : 'text-stone-500'}">
+                ${item.unlocked ? item.content : '🔒 尚未解鎖（探索五大章節、與物件及人物互動即可解鎖，或點擊右上角「一鍵全解鎖」直接檢視）'}
+            </p>
+        </div>
+    `).join('');
+}
+
+function openEndingModal() {
+    let unlockedCount = LORE_ENTRIES.filter(e => e.unlocked).length;
+    document.getElementById('score-qa').textContent = `${stats.qaSolvedSet.size} / 12`;
+    document.getElementById('score-lore').textContent = `${unlockedCount} / 12`;
+    document.getElementById('score-kills').textContent = `${stats.enemiesDefeated}`;
+    let totalLv = upgrades.weaponLv + upgrades.armorLv + upgrades.qiLv;
+    document.getElementById('score-rank').textContent = totalLv >= 10 ? "扶餘國主・曠世奇俠" : (totalLv >= 6 ? "風塵豪傑" : "江湖俠客");
+    document.getElementById('modal-ending').classList.remove('hidden');
+}
+
+document.querySelectorAll('.btn-chap').forEach(btn => {
+    btn.addEventListener('click', () => {
+        switchChapter(parseInt(btn.dataset.chap));
+        canvas.focus();
+    });
+});
+
+document.getElementById('btn-start-play').addEventListener('click', () => {
+    document.getElementById('modal-start').classList.add('hidden');
+    canvas.focus();
+});
+
+document.getElementById('btn-open-help').addEventListener('click', () => {
+    document.getElementById('modal-start').classList.remove('hidden');
+});
+
+document.getElementById('btn-open-forge').addEventListener('click', () => {
+    renderForgeModal();
+    document.getElementById('modal-forge').classList.remove('hidden');
+});
+
+document.getElementById('btn-close-forge').addEventListener('click', () => {
+    document.getElementById('modal-forge').classList.add('hidden');
+    canvas.focus();
+});
+
+document.getElementById('btn-forge-cheat').addEventListener('click', () => {
+    player.coins += 300;
+    updateNavBadges();
+    renderForgeModal();
+});
+
+document.getElementById('btn-open-lore').addEventListener('click', () => {
+    renderLoreModal();
+    document.getElementById('modal-lore').classList.remove('hidden');
+});
+
+document.getElementById('btn-close-lore').addEventListener('click', () => {
+    document.getElementById('modal-lore').classList.add('hidden');
+    canvas.focus();
+});
+
+document.getElementById('btn-unlock-all-lore').addEventListener('click', () => {
+    LORE_ENTRIES.forEach(e => e.unlocked = true);
+    updateNavBadges();
+    renderLoreModal();
+});
+
+document.getElementById('btn-open-score').addEventListener('click', () => {
+    openEndingModal();
+});
+
+document.getElementById('btn-close-ending').addEventListener('click', () => {
+    document.getElementById('modal-ending').classList.add('hidden');
+    canvas.focus();
+});
+
+document.getElementById('btn-open-lore-from-end').addEventListener('click', () => {
+    document.getElementById('modal-ending').classList.add('hidden');
+    LORE_ENTRIES.forEach(e => e.unlocked = true);
+    updateNavBadges();
+    renderLoreModal();
+    document.getElementById('modal-lore').classList.remove('hidden');
+});
+
+document.getElementById('ui-btn-interact').addEventListener('click', () => { tryInteract(); canvas.focus(); });
+document.getElementById('ui-btn-atk').addEventListener('click', () => { player.attack(); canvas.focus(); });
+document.getElementById('ui-btn-dragon').addEventListener('click', () => { player.castDragonSlash(); canvas.focus(); });
+document.getElementById('ui-btn-quake').addEventListener('click', () => { player.castEarthShatter(); canvas.focus(); });
+document.getElementById('ui-btn-ult').addEventListener('click', () => { player.castThreeHeroesUlt(); canvas.focus(); });
+document.getElementById('ui-btn-dash').addEventListener('click', () => { player.dash(); canvas.focus(); });
+
+window.onload = () => {
+    updateNavBadges();
+    requestAnimationFrame(gameLoop);
+};
+</script>
+</body>
+</html>
